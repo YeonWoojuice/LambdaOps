@@ -14,7 +14,7 @@ The Slash publisher must emit the following five standard-resolution metrics eve
 | `DBQueryCount` | `Count` | Completed instrumented DB queries in the interval |
 | `DBQueryDurationMsTotal` | `Milliseconds` | Sum of completed instrumented DB query durations in milliseconds |
 
-The numerator and denominator of each ratio must cover the same service, interval, and request/query population. A DB query metric must be instrumented in the actual AWS profile; the M1 jOOQ timer is currently limited to `local & m1`. This module does not emit metrics. The publisher may also emit `DBConnectionsActive` (`Count`) with the same namespace and dimensions as a diagnostic Hikari gauge. It has no M2 alarm because the first three fault tests cover HTTP 5xx, API latency, and DB query latency. RDS `DatabaseConnections` is a different, instance-wide signal.
+The numerator and denominator of each ratio must cover the same service, interval, and request/query population. A DB query metric must be instrumented in the actual AWS profile. The Slash jOOQ timer is opt-in through `slash.observability.query-metrics.enabled`, and CloudWatch export fails at startup if that timer is disabled. This module does not emit metrics. The publisher may also emit `DBConnectionsActive` (`Count`) with the same namespace and dimensions as a diagnostic Hikari gauge. It has no M2 alarm because the first three fault tests cover HTTP 5xx, API latency, and DB query latency. RDS `DatabaseConnections` is a different, instance-wide signal.
 
 ## Alarms
 
