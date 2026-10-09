@@ -1,0 +1,68 @@
+{
+  "version": "0",
+  "id": "eefbb749-5157-48d6-9302-43eca84fe315",
+  "detail-type": "CloudWatch Alarm State Change",
+  "source": "aws.cloudwatch",
+  "account": "123456789012",
+  "time": "2026-10-08T12:05:01Z",
+  "region": "ap-northeast-2",
+  "resources": [
+    "arn:aws:cloudwatch:ap-northeast-2:123456789012:alarm:lambdaops-dev-slash-api-api-5xx-rate"
+  ],
+  "detail": {
+    "alarmName": "lambdaops-dev-slash-api-api-5xx-rate",
+    "previousState": {
+      "value": "ALARM",
+      "reason": "Threshold crossed",
+      "timestamp": "2026-10-08T12:00:00.123+0000"
+    },
+    "state": {
+      "value": "INSUFFICIENT_DATA",
+      "reason": "Missing evaluation data",
+      "timestamp": "2026-10-08T12:05:00.000+0000"
+    },
+    "configuration": {
+      "metrics": [
+        {
+          "id": "rate",
+          "expression": "IF(requests >= 20, 100 * errors / requests, 0)",
+          "returnData": true
+        },
+        {
+          "id": "requests",
+          "metricStat": {
+            "metric": {
+              "namespace": "LambdaOps/Slash",
+              "name": "RequestCount",
+              "dimensions": {
+                "Service": "slash-api",
+                "Environment": "dev"
+              }
+            },
+            "period": 60,
+            "stat": "Sum",
+            "unit": "Count"
+          },
+          "returnData": false
+        },
+        {
+          "id": "errors",
+          "metricStat": {
+            "metric": {
+              "namespace": "LambdaOps/Slash",
+              "name": "ServerErrorCount",
+              "dimensions": {
+                "Service": "slash-api",
+                "Environment": "dev"
+              }
+            },
+            "period": 60,
+            "stat": "Sum",
+            "unit": "Count"
+          },
+          "returnData": false
+        }
+      ]
+    }
+  }
+}

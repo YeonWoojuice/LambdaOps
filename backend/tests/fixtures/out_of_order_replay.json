@@ -1,0 +1,8 @@
+{
+  "description": "Valid ALARM \u2192 OK \u2192 ALARM transitions delivered newest first",
+  "fixtureOrder": [
+    "later_alarm.json",
+    "ok.json",
+    "alarm.json"
+  ]
+}
