@@ -16,4 +16,5 @@ read_package_zip_path   = "REPLACE_WITH_BUILT_READ_ZIP_PATH"
 # Use an existing identity provider that issues a token with the read scope.
 jwt_issuer   = "REPLACE_WITH_HTTPS_ISSUER"
 jwt_audience = "REPLACE_WITH_ACCESS_TOKEN_AUDIENCE"
-# read_authorization_scope = "incidents:read"
+# For a Cognito resource server "lambdaops" with scope "incidents.read":
+# read_authorization_scope = "lambdaops/incidents.read"

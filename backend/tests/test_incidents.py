@@ -308,6 +308,24 @@ class HandlerTests(unittest.TestCase):
         }
         self.assertEqual(handle_request(client_token, self.store)["statusCode"], 200)
 
+    def test_cognito_custom_scope_can_authorize_detail(self):
+        alarm = fixture("alarm.json")
+        incident_id = self.store.apply(transition(alarm), alarm).incident_id
+        access_token_event = api_event(
+            "GET /incidents/{incidentId}",
+            incident_id,
+            "openid email lambdaops/incidents.read",
+        )
+
+        self.assertEqual(
+            handle_request(access_token_event, self.store, required_scope="lambdaops/incidents.read")["statusCode"],
+            200,
+        )
+        self.assertEqual(
+            handle_request(access_token_event, self.store, required_scope="incidents:read")["statusCode"],
+            403,
+        )
+
     def test_detail_not_found_and_bad_id(self):
         self.assertEqual(
             handle_request(api_event("GET /incidents/{incidentId}", "inc_" + "0" * 32), self.store)["statusCode"],
