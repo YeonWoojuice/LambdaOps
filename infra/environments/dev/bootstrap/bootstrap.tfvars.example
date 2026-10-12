@@ -1,0 +1,5 @@
+# Copy to bootstrap.tfvars and replace every placeholder before planning.
+state_account_id  = "REPLACE_WITH_12_DIGIT_STATE_ACCOUNT_ID"
+state_region      = "REPLACE_WITH_STATE_REGION"
+state_bucket_name = "REPLACE_WITH_GLOBALLY_UNIQUE_BUCKET_NAME"
+lock_table_name   = "REPLACE_WITH_LOCK_TABLE_NAME"

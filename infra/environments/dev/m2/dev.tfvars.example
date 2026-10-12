@@ -1,0 +1,12 @@
+# Copy to dev.tfvars and fill every required value with the actual dev settings.
+aws_account_id = "REPLACE_WITH_12_DIGIT_ACCOUNT_ID"
+aws_region     = "REPLACE_WITH_DEPLOY_REGION"
+service        = "REPLACE_WITH_DEPLOYED_SERVICE_DIMENSION"
+environment    = "REPLACE_WITH_DEPLOYED_ENVIRONMENT_DIMENSION"
+
+# Fill all five numbers from observed 60-second Slash traffic before planning.
+# api_5xx_rate_threshold_percent        = <measured percent>
+# api_average_latency_threshold_ms      = <measured milliseconds>
+# db_average_query_latency_threshold_ms = <measured milliseconds>
+# minimum_requests_per_period           = <measured whole number>
+# minimum_db_queries_per_period         = <measured whole number>

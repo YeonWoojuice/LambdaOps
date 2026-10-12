@@ -71,6 +71,8 @@ contain `lambdaops_m3/` and its dependencies. Build it with Python 3.12 in a
 Linux environment that matches the Lambda runtime. Include `boto3` from
 `requirements.txt` in the ZIP so the SDK version is controlled. The Terraform
 module consumes the resulting path; it does not run a package builder.
+Use the [Docker-based ZIP builder](scripts/README.md) to build and smoke-test
+that deployment package.
 
 The M2 alarms have not been deployed or replayed in AWS. Local fixture tests
 and Terraform formatting therefore verify code shape and behavior only;

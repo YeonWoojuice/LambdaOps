@@ -1,0 +1,5 @@
+# Copy to backend.tf only after the S3 bucket and lock table exist.
+# Terraform then migrates this root's local state to its own S3 key.
+terraform {
+  backend "s3" {}
+}

@@ -1,0 +1,6 @@
+# Copy to backend.hcl after bootstrap apply; use the actual output names.
+bucket         = "REPLACE_WITH_CREATED_STATE_BUCKET"
+key            = "lambdaops/dev/bootstrap.tfstate"
+region         = "REPLACE_WITH_STATE_REGION"
+encrypt        = true
+dynamodb_table = "REPLACE_WITH_CREATED_LOCK_TABLE"

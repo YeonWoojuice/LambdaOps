@@ -1,0 +1,5 @@
+# These files contain environment-specific state configuration and inputs.
+**/backend.hcl
+**/dev.tfvars
+**/bootstrap.tfvars
+**/*.tfstate*

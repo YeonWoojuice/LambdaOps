@@ -1,0 +1,19 @@
+# Copy to dev.tfvars and replace every placeholder before planning.
+aws_account_id = "REPLACE_WITH_12_DIGIT_ACCOUNT_ID"
+aws_region     = "REPLACE_WITH_DEPLOY_REGION"
+service        = "REPLACE_WITH_SAME_SERVICE_AS_M2"
+environment    = "REPLACE_WITH_SAME_ENVIRONMENT_AS_M2"
+
+# These three settings must identify the exact M2 backend after M2 is applied.
+m2_state_bucket = "REPLACE_WITH_EXISTING_STATE_BUCKET"
+m2_state_key    = "lambdaops/dev/m2.tfstate"
+m2_state_region = "REPLACE_WITH_STATE_BUCKET_REGION"
+
+# These ZIP files must already exist and contain lambdaops_m3/ at the root.
+ingest_package_zip_path = "REPLACE_WITH_BUILT_INGEST_ZIP_PATH"
+read_package_zip_path   = "REPLACE_WITH_BUILT_READ_ZIP_PATH"
+
+# Use an existing identity provider that issues a token with the read scope.
+jwt_issuer   = "REPLACE_WITH_HTTPS_ISSUER"
+jwt_audience = "REPLACE_WITH_ACCESS_TOKEN_AUDIENCE"
+# read_authorization_scope = "incidents:read"

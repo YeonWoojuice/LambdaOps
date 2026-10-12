@@ -1,0 +1,6 @@
+# Copy to backend.hcl after the S3 bucket and DynamoDB lock table exist.
+bucket         = "REPLACE_WITH_EXISTING_STATE_BUCKET"
+key            = "lambdaops/dev/m2.tfstate"
+region         = "REPLACE_WITH_STATE_BUCKET_REGION"
+encrypt        = true
+dynamodb_table = "REPLACE_WITH_EXISTING_LOCK_TABLE"
