@@ -1,6 +1,6 @@
 # M2 CloudWatch alarms
 
-This module defines the first three Slash alarms. It is **not wired to an environment or deployed**. Choose thresholds from measured traffic before an environment calls the module. The module creates no AWS resources until an environment runs `terraform apply`.
+This module defines the first three Slash alarms. The [dev M2 root](../../environments/dev/m2/) calls it, but the alarms are **not deployed**. Choose thresholds from measured traffic before applying the environment. The module creates no AWS resources until an environment runs `terraform apply`.
 
 ## Input metric contract
 
