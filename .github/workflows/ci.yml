@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend fixture tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        working-directory: backend
+        run: python -m unittest discover -s tests -v
+
+  terraform:
+    name: Terraform configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.5.7
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra
+      - name: Validate bootstrap
+        run: |
+          terraform -chdir=infra/environments/dev/bootstrap init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=infra/environments/dev/bootstrap validate -no-color
+      - name: Validate M2
+        run: |
+          terraform -chdir=infra/environments/dev/m2 init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=infra/environments/dev/m2 validate -no-color
+      - name: Validate M3
+        run: |
+          terraform -chdir=infra/environments/dev/m3 init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=infra/environments/dev/m3 validate -no-color

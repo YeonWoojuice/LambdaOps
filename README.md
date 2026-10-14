@@ -67,6 +67,8 @@ cd backend
 python3 -m unittest discover -s tests -v
 ```
 
+`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 테스트와 Terraform 형식·설정 검사를 자동 실행합니다. CI는 AWS 자격 증명을 사용하거나 `terraform plan/apply`를 실행하지 않으므로 AWS 자원을 생성하지 않습니다. GitHub Actions 화면에서 수동으로 다시 실행할 수도 있습니다.
+
 배포 ZIP 제작은 [패키징 안내](backend/scripts/README.md), Terraform 준비·검증·적용 순서는 [dev 배포 안내](infra/environments/dev/README.md)를 따릅니다. AWS 자격 증명, Terraform 상태 파일, 토큰은 Git에 올리지 않습니다.
 
 ## 다음 검증 순서
