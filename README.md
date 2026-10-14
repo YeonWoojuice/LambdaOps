@@ -17,7 +17,7 @@ flowchart LR
     Read --> DB
 ```
 
-이 그림은 목표 연결 구조입니다. **2026-10-14 기준 M2 Alarm과 M3 자원은 AWS에 아직 배포되지 않았습니다.** Slash API·DB도 현재 로컬에서만 실행 중입니다.
+이 그림은 현재 M2·M3 코드가 구성하려는 경로입니다. **2026-10-14 기준 M2 Alarm과 M3 자원은 AWS에 아직 배포되지 않았습니다.** Slash API·DB도 현재 로컬에서만 실행 중입니다.
 
 ## 현재 진행 상태
 
@@ -28,6 +28,22 @@ flowchart LR
 | M3 Incident Core | 이벤트 처리, DynamoDB 저장, 인증된 목록·상세 조회 구현; 로컬 테스트 **46개 통과** | EventBridge·SQS·Lambda·Incident DB·API 미배포 |
 | 로그인 | OIDC/JWT 연결점 구현, Cognito 설정 방법 문서화 | Cognito는 검토 중이며 미생성 |
 | 화면 | Pen 와이어프레임 검토 후 구현 예정 | 프런트엔드 코드 없음 |
+
+## 초기 기술 스택안과 현재 구현
+
+초기 발표 자료에는 아래 기술을 역할별 **구현 예정안**으로 제시했습니다. 현재 코드가 같은 기술을 모두 채택하거나 완성했다는 뜻은 아닙니다.
+
+| 역할 | 초기 발표안 | 현재 M2·M3 코드와 결정 상태 |
+| --- | --- | --- |
+| 프런트엔드 | React · TypeScript | Pen 검토 단계; 프런트엔드 코드 없음 |
+| 요청·승인 백엔드 | Java · Spring Boot | M3 조회는 Python 3.12 Lambda로 구현; 승인·도구 호출 API와 Spring Boot 코드는 없음 |
+| AI 에이전트 | Bedrock · Strands · AgentCore | M3 범위 밖; 채택·구현 전 |
+| 이벤트 처리 | EventBridge · SQS · Lambda | 동일한 경로의 Terraform과 수집 Lambda 코드 작성; AWS 배포 검증 전 |
+| Incident 저장 | Aurora DSQL | M3에는 DynamoDB 단일 테이블 구현; 최종 저장소 결정은 별도 확인 필요 |
+| 인프라 | Terraform | 상태 저장소 적용 완료; M2·M3 자원은 미배포 |
+| 외부 도구 연결 | MCP | M3 범위 밖; 구현 전 |
+
+[개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 발표 자료의 AgentCore·Strands·Aurora DSQL을 현재 채택된 구현 기술로 보지 않습니다. [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)는 Aurora DSQL을 후보로 두고, DynamoDB를 **M3의 현재 구현**으로 기록합니다. 위 표는 기술을 폐기하거나 최종 확정하는 결정이 아닙니다.
 
 M3에서는 **Alarm 에피소드당 Incident 한 건**을 만듭니다. 동일 이벤트는 계정·리전·Alarm ARN·상태·전환 시각으로 중복을 판별합니다. `OK`는 해당 Alarm 에피소드의 종료 시각을 기록하지만 서비스 전체 복구나 Incident `Resolved`를 뜻하지 않습니다. `INSUFFICIENT_DATA`는 종료로 처리하지 않으며, 오래된 전환 이벤트가 최신 상태를 덮어쓰지 못하도록 합니다. 자세한 규칙은 [백엔드 설명](backend/README.md)에 있습니다.
 
