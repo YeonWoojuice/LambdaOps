@@ -17,7 +17,7 @@ flowchart LR
     Read --> DB
 ```
 
-이 그림은 현재 M2·M3 **코드가 구성하려는 경로**입니다. 2026-10-14 저장소 기록에는 M2 Alarm·M3 자원이 미배포이고 Slash API·DB가 로컬에서 실행 중이라고 적혀 있습니다. 현재 AWS 계정 상태는 별도 확인이 필요합니다. 확정된 전체 목표와의 차이는 [현재·목표 아키텍처](docs/architecture/overview.md)에 정리합니다.
+이 그림은 현재 Terraform의 기본 DynamoDB 경로입니다. 백엔드에는 `INCIDENT_STORE=dsql`로 선택하는 DSQL 저장·조회 코드도 있습니다. 2026-10-14 기록에는 M2 Alarm·M3 자원이 미배포이고 Slash는 로컬 실행 중이라고 적혀 있습니다. 현재 AWS 상태는 별도 확인이 필요합니다. [현재·목표 아키텍처](docs/architecture/overview.md).
 
 ## 현재 진행 상태
 
@@ -25,7 +25,7 @@ flowchart LR
 | --- | --- | --- |
 | Terraform 상태 저장소 | 암호화·버전 관리 S3와 DynamoDB 잠금 설정 | dev 계정에 생성, 원격 상태 이전 완료 |
 | M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 2026-10-14 기록상 미배포; LambdaOps 대상 AWS 지표·임계값·Alarm 전이 미검증 |
-| M3 Incident Core | 이벤트 처리, DynamoDB 저장, 인증된 목록·상세 조회 구현; 로컬 테스트 **46개 통과** | EventBridge·SQS·Lambda·Incident DB·API 미배포 |
+| M3 Incident Core | DynamoDB 호환 경로와 DSQL 저장·조회 구현; 고정 ID·검색·필터·번호 페이지·건수를 로컬 SQL로 검증 | EventBridge·SQS·Lambda·Incident DB·API 미배포 |
 | 로그인 | OIDC/JWT 연결점 구현, Cognito 설정 방법 문서화 | Cognito는 검토 중이며 미생성 |
 | 화면 | 승인된 Cloudscape 그래프 시안과 React·TypeScript 프런트 코드가 있습니다. 화면은 예시 Incident·지표로 동작합니다. | 프런트 배포 없음. 실제 JWT·CORS·CloudWatch 시계열 조회 연결 전 |
 
@@ -41,7 +41,7 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 | 요청·승인 백엔드 | Java · Spring Boot | 목표 그림은 Lambda Backend; 현재 M3 조회는 Python 3.12 Lambda이며 승인·도구 호출 API와 Spring Boot 코드는 없음 |
 | AI 에이전트 | Bedrock · Strands · AgentCore | 최종 목표로 선택; M3 범위 밖이며 현재 코드·배포 없음 |
 | 이벤트 처리 | EventBridge · SQS · Lambda | 동일한 경로의 Terraform과 수집 Lambda 코드 작성; AWS 배포 검증 전 |
-| Incident 저장 | Aurora DSQL | **2026-10-28 Aurora DSQL 채택 확정**; 현재 코드는 DynamoDB이며 DSQL 전환 구현 예정 |
+| Incident 저장 | Aurora DSQL | **2026-10-28 Aurora DSQL 채택 확정**; DSQL 어댑터 로컬 구현·검증. 기본 설정·Terraform은 DynamoDB이며 AWS 전환 전 |
 | 인프라 | Terraform | 상태 저장소 적용 완료; M2·M3 자원은 미배포 |
 | 외부 도구 연결 | MCP | 최종 목표의 읽기·승인 후 복구 도구; M3 범위 밖이며 구현 전 |
 
@@ -49,9 +49,9 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 
 사용자 결정으로 **Aurora DSQL을 LambdaOps의 Incident DB로 확정**했습니다. 서비스·환경·상태·기간 필터, 검색, 정렬, 페이지 번호 및 정확한 전체 건수 조회 요구사항을 SQL로 설계합니다. 빈번한 조회·저장을 고려하며, 무료 운영이나 DynamoDB보다 낮은 비용을 전제하지 않습니다. 대표 데이터와 호출 빈도로 처리량·저장량을 측정해 비용을 검증합니다.
 
-현재 실행 코드와 Terraform은 여전히 DynamoDB를 사용합니다. 승인된 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 바탕으로 **3개 테이블·32개 컬럼·10개 인덱스의 [생성 SQL](backend/sql/dsql/README.md)을 작성했고, 로컬 PostgreSQL 제약조건 테스트 32개가 통과했습니다.** 실제 DSQL 적용·연결·저장 어댑터·Terraform 전환 및 AWS 검증은 남아 있습니다. EventBridge → SQS → Lambda 경로와 아래 Incident 규칙을 유지하며, Terraform 상태 잠금용 DynamoDB는 Incident DB와 역할이 다릅니다.
+현재 기본 설정과 Terraform은 DynamoDB를 사용합니다. 승인된 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)의 **3개 테이블·32개 컬럼·10개 인덱스 [생성 SQL](backend/sql/dsql/README.md)**에 이어 DSQL 저장·조회 어댑터와 IAM 연결 코드를 작성했습니다. 로컬 PostgreSQL에서 고정 ID·원자적 저장·동시 수신·조회 일관성을 검증했습니다. 실제 DSQL 적용·IAM 역할 연결·Terraform 전환 및 AWS 검증은 남아 있습니다. EventBridge → SQS → Lambda와 Incident 규칙을 유지하며 Terraform 상태 잠금용 DynamoDB는 별개입니다.
 
-전환 순서는 **생성 SQL 검증·조회 계약 확정 → DSQL 저장·조회 구현 → Terraform·IAM·Lambda 연결 수정 → fixture·동시성·조회 테스트 → AWS 환경·비용 검증**입니다. 현재 `limit`/`nextToken` API는 구현 근거로 유지하고, 페이지 번호·검색·건수 조회의 새 계약은 별도 설계 후 구현합니다. 조회 범위와 사용자 권한도 그 계약에서 함께 정합니다.
+[새 조회 계약](docs/contracts/incident-api.md)은 `page`·`pageSize`, 서비스·환경·상태·기간 필터, 검색·정렬·정확한 건수를 정의합니다. 상세는 이전 ID로 대표를 찾고 요청 ID와 연결 여부를 반환합니다. 조회 주체는 인증된 단일 프로젝트 운영자입니다. 기존 DynamoDB 모드와 프런트는 `limit`·`nextToken`을 유지하므로 배포 전 함께 전환해야 합니다. 다음 순서는 **Terraform·IAM·DB 권한 구성 → DSQL 스키마 적용·Lambda 연결 → 실제 JWT·이벤트·비용 검증**입니다.
 
 선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Cognito·Agent 관련 선택은 이번 DB 결정과 별개입니다.
 
@@ -70,6 +70,7 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 | [`backend/tests/`](backend/tests/) | ALARM·OK·INSUFFICIENT_DATA·중복·역순 이벤트 fixture와 테스트 |
 | [`backend/sql/dsql/`](backend/sql/dsql/) | 승인된 DSQL 테이블·인덱스 생성 SQL, 설치 확인 SQL과 실행 안내 |
 | [`backend/tests_sql/`](backend/tests_sql/) | 별도 로컬 PostgreSQL에서 실행하는 SQL 제약조건 테스트 |
+| [`backend/tests_dsql/`](backend/tests_dsql/) | SQL 어댑터 저장·조회·동시 수신·롤백 통합 테스트 |
 | [`backend/scripts/`](backend/scripts/) | Python 3.12 Lambda 배포 ZIP 생성 |
 | [`frontend/`](frontend/) | 승인된 Pen 시안을 옮긴 React·TypeScript 화면, 예시 지표와 M3 조회 클라이언트 |
 | [`infra/modules/m2-alarms/`](infra/modules/m2-alarms/) | 재사용 가능한 M2 Alarm Terraform 모듈 |
@@ -82,10 +83,13 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 
 ```bash
 cd backend
-python3 -m unittest discover -s tests -v
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
 ```
 
-`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 테스트와 Terraform 형식·설정 검사를 자동 실행합니다. CI는 AWS 자격 증명을 사용하거나 `terraform plan/apply`를 실행하지 않으므로 AWS 자원을 생성하지 않습니다. GitHub Actions 화면에서 수동으로 다시 실행할 수도 있습니다.
+`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행하도록 구성했습니다. 이번 변경의 원격 CI 실행은 아직 확인하지 않았습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다.
 
 프런트는 `frontend/`에서 `npm ci`, `npm run typecheck`, `npm test`, `npm run build`로 확인합니다. CI에는 이 검사도 포함하며 프런트 배포는 하지 않습니다. 화면의 그래프는 CloudWatch 실측이 아닌 **예시 데이터**입니다. 현행 M3 API에는 Incident 목록·상세만 있어 실제 그래프를 위해서는 인증된 지표 조회 경로가 추가로 필요합니다. [프런트 실행과 데이터 경계](frontend/README.md).
 

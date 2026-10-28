@@ -1,6 +1,6 @@
 # M3 Incident DSQL 초기 스키마
 
-승인한 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 실행 가능한 SQL로 옮긴다. `public` 스키마에 테이블 3개, 컬럼 32개, 인덱스 10개를 정의한다. 기존 Lambda와 Terraform은 아직 DynamoDB를 사용하며, 이 파일을 추가한 것만으로 DSQL 자원이 생성되거나 연결되지는 않는다.
+승인한 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 실행 가능한 SQL로 옮긴다. `public` 스키마에 테이블 3개, 컬럼 32개, 인덱스 10개를 정의한다. Lambda에는 DSQL 선택 경로가 있지만 기본 설정과 Terraform은 DynamoDB다. 이 SQL만으로 실제 DSQL 자원이 생성되거나 연결되지는 않는다.
 
 ## 파일과 실행 순서
 
@@ -86,7 +86,7 @@ psql -X -v ON_ERROR_STOP=1 -f 008_verify_schema.sql
 
 ## 로컬 제약조건 검증
 
-별도의 비어 있는 PostgreSQL에 대해 [tests_sql](../../tests_sql/test_schema.py)을 명시적으로 실행한다. 기존 `backend/tests`와 분리되어 있으며, 현재 CI의 일반 백엔드 테스트 명령만으로 이 테스트가 실행되지는 않는다.
+별도의 비어 있는 PostgreSQL에 대해 [tests_sql](../../tests_sql/test_schema.py)을 명시적으로 실행한다. 기존 `backend/tests`와 분리되어 있다. CI에는 일회용 PostgreSQL을 준비한 뒤 이 모음과 `tests_dsql`을 각각 실행하는 단계를 추가했다. 일반 단위 테스트 명령 하나로 모든 SQL 검사가 실행되지는 않는다.
 
 로컬 PostgreSQL에서는 001~003을 그대로 적용하고, 004~007은 **로컬 검증용 입력에서만** `INDEX ASYNC`를 `INDEX`로 바꿔 적용한다. 저장소의 DSQL 원본 파일은 바꾸지 않는다. 이 변환은 SQL 제약조건을 검사하기 위한 것으로, DSQL의 비동기 작업·OCC를 재현하지 않는다.
 

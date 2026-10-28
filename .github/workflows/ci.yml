@@ -36,9 +36,30 @@ jobs:
         run: npm run build
 
   backend:
-    name: Backend fixture tests
+    name: Backend unit and SQL tests
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: lambdaops_test
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: lambdaops_adapter_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lambdaops_test -d lambdaops_adapter_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: lambdaops_test
+      PGPASSWORD: local-ci-only
+      PGDATABASE: lambdaops_adapter_test
+      LAMBDAOPS_DSQL_TEST: '1'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -46,9 +67,28 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install -r requirements.txt
       - name: Run unit tests
         working-directory: backend
         run: python -m unittest discover -s tests -v
+      - name: Apply schema to disposable PostgreSQL
+        shell: bash
+        working-directory: backend/sql/dsql
+        run: |
+          for ddl in 001_create_alarms.sql 002_create_alarm_events.sql 003_create_incidents.sql; do
+            psql -X -v ON_ERROR_STOP=1 -f "$ddl"
+          done
+          for ddl in 004_create_canonical_anchor_index.sql 005_create_detected_index.sql 006_create_service_environment_index.sql 007_create_redirect_index.sql; do
+            sed 's/INDEX ASYNC/INDEX/' "$ddl" | psql -X -v ON_ERROR_STOP=1
+          done
+      - name: SQL constraint tests
+        working-directory: backend
+        run: python -m unittest discover -s tests_sql -v
+      - name: Storage and query integration tests
+        working-directory: backend
+        run: python -m unittest discover -s tests_dsql -v
 
   terraform:
     name: Terraform configuration

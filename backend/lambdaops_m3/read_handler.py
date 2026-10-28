@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any, Dict, Optional
 
-from .store import DynamoIncidentStore
+from .dsql_connection import build_store
 
 INCIDENT_ID = re.compile(r"^inc_[0-9a-f]{32}$")
+LOGGER = logging.getLogger(__name__)
+
+
+def _unavailable(exc: Exception) -> Dict[str, Any]:
+    # Do not expose SQL, connection strings, IAM tokens, or raw evidence.
+    LOGGER.error("Incident read failed errorType=%s", type(exc).__name__)
+    return _response(503, {"message": "Incident store unavailable"})
 
 
 def _response(status: int, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -54,13 +62,26 @@ def handle_request(event: Dict[str, Any], store: Any, required_scope: str = "inc
         incident_id = (event.get("pathParameters") or {}).get("incidentId")
         if not isinstance(incident_id, str) or not INCIDENT_ID.fullmatch(incident_id):
             return _response(400, {"message": "Invalid incidentId"})
-        incident = store.get_incident(incident_id)
+        try:
+            incident = store.get_incident(incident_id)
+        except Exception as exc:
+            return _unavailable(exc)
         if incident is None:
             return _response(404, {"message": "Incident not found"})
         return _response(200, incident)
 
     if route == "GET /incidents":
         params = event.get("queryStringParameters") or {}
+        if getattr(store, "supports_page_queries", False):
+            from .query_contract import QueryContractError, parse_incident_query
+            try:
+                query = parse_incident_query(params)
+            except QueryContractError as exc:
+                return _response(400, {"message": str(exc)})
+            try:
+                return _response(200, store.list_incidents_page(query))
+            except Exception as exc:
+                return _unavailable(exc)
         try:
             limit = int(params.get("limit", "50"))
         except (TypeError, ValueError):
@@ -71,6 +92,8 @@ def handle_request(event: Dict[str, Any], store: Any, required_scope: str = "inc
             incidents, next_token = store.list_incidents(limit, params.get("nextToken"))
         except ValueError:
             return _response(400, {"message": "Invalid nextToken"})
+        except Exception as exc:
+            return _unavailable(exc)
         return _response(200, {"items": incidents, "nextToken": next_token})
     return _response(404, {"message": "Not found"})
 
@@ -78,6 +101,6 @@ def handle_request(event: Dict[str, Any], store: Any, required_scope: str = "inc
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return handle_request(
         event,
-        DynamoIncidentStore(os.environ["INCIDENTS_TABLE_NAME"]),
+        build_store(read_only=True),
         os.environ.get("REQUIRED_READ_SCOPE", "incidents:read"),
     )

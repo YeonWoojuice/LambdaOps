@@ -2,18 +2,39 @@
 
 ## Storage decision — 2026-10-28
 
-Aurora DSQL is the selected Incident database. The code and behavior documented
-below still describe the current DynamoDB implementation. The approved
-three-table schema is now defined in [DSQL creation SQL](sql/dsql/README.md),
-with 32 separate local PostgreSQL constraint tests. Actual DSQL application,
-the adapter, connection/authentication setup, and AWS integration tests are pending.
-The stable Incident ID rule is approved, but this DynamoDB adapter does not
-implement that target model.
-Preserve the Alarm episode, dedupe, state-history, out-of-order replay, and
-read-authorization contracts during the transition. The expanded list-query
-contract will be finalized before implementation; the initial schema indexes
-do not cover every search pattern. See the
-[Incident DB decision](../docs/decisions/0001-incident-db.md).
+Aurora DSQL is the selected Incident database. The approved three-table schema
+is defined in [DSQL creation SQL](sql/dsql/README.md). Its adapter implements
+stable UUID IDs, canonical redirects, atomic evidence/projection writes and
+bounded whole-transaction retries. The list API supports page numbers, filters,
+literal substring search, sorting and exact totals in one snapshot.
+See the [API contract](../docs/contracts/incident-api.md).
+
+`INCIDENT_STORE=dsql` selects this adapter in both Lambda handlers. The default
+remains `dynamodb` while Terraform and the frontend use the legacy cursor API.
+This compatibility mode does not change the DSQL decision. No automatic data
+migration is provided. Actual DSQL IAM, distributed OCC, ASYNC indexes, execution
+plans, costs and Lambda/JWT integration remain unverified.
+
+## DSQL connection settings
+
+| Variable | Value |
+| --- | --- |
+| `INCIDENT_STORE` | `dsql` in both ingest and read Lambdas |
+| `DSQL_ENDPOINT` | Cluster hostname, without a URL scheme |
+| `DSQL_REGION` | Cluster region; falls back to `AWS_REGION` |
+| `DSQL_DB_USER` | Custom runtime DB role; use separate ingest and read roles. `admin` is rejected. |
+| `DSQL_CONNECT_TIMEOUT` | Optional 1–30 seconds, default 10 |
+| `DSQL_SSLROOTCERT` | Optional CA bundle path; defaults to the packaged certifi bundle |
+
+The connection factory signs a fresh DbConnect token using the Lambda IAM
+credentials for each connection, verifies TLS hostname/certificate and opens a
+short REPEATABLE READ transaction. Reads also use READ ONLY. Each context commits
+or rolls back and closes; this initial implementation does not pool connections.
+Tokens are not stored in settings or logged. Mapping custom DB roles to IAM roles
+and granting SQL privileges are infrastructure tasks; current Terraform does not
+configure them. [IAM authentication](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_authentication-token.html),
+[supported BEGIN options](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-postgresql-compatibility-supported-sql-features.html),
+[concurrency and SQLSTATE 40001](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-concurrency-control.html).
 
 This package handles the three M2 CloudWatch alarms without changing the M2
 module. The entry points are `lambdaops_m3.ingest_handler.lambda_handler`
@@ -27,8 +48,14 @@ AWS wiring. No AWS resources are created by running the local tests.
 From this directory:
 
 ```sh
-python3 -m unittest discover -s tests -v
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
 ```
+
+Run the separate [SQL integration suite](tests_dsql/README.md) against a disposable
+local database. CI now includes this suite and the schema constraints.
 
 The JSON fixtures cover ALARM, OK, INSUFFICIENT_DATA, a duplicate ALARM,
 and a contradictory older ALARM. Replay tests deliver valid transitions in
@@ -36,7 +63,7 @@ every order, including two consecutive Alarm episodes and a return from
 INSUFFICIENT_DATA to ALARM. The tests also exercise SQS partial failures,
 authenticated list/detail behavior, and a DynamoDB transaction test double.
 
-## Event and Incident rules
+## Shared rules and legacy DynamoDB behavior
 
 - Only `aws.cloudwatch` / `CloudWatch Alarm State Change` events for the three
   configured M2 alarm ARNs are accepted. The internal transition contains the

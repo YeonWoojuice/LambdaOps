@@ -55,6 +55,11 @@ def build() -> None:
         "lambdaops_m3/projection.py",
         "lambdaops_m3/read_handler.py",
         "lambdaops_m3/store.py",
+        "lambdaops_m3/dsql_connection.py",
+        "lambdaops_m3/dsql_projection.py",
+        "lambdaops_m3/dsql_queries.py",
+        "lambdaops_m3/dsql_store.py",
+        "lambdaops_m3/query_contract.py",
     }
     files = sorted(
         path
@@ -68,6 +73,9 @@ def build() -> None:
         name.startswith("botocore/") for name in names
     ):
         raise RuntimeError("The Lambda package must include boto3 and botocore")
+    if not all(any(name.startswith(package + "/") for name in names)
+               for package in ("psycopg", "psycopg_binary", "certifi")):
+        raise RuntimeError("The Lambda package must include the PostgreSQL driver and TLS roots")
     if any(name.startswith(("backend/", "tests/", "fixtures/")) or name.endswith(".pen") for name in names):
         raise RuntimeError("The package contains unrelated project files")
 
@@ -91,13 +99,18 @@ def build() -> None:
 from pathlib import Path
 import boto3
 import botocore
-from lambdaops_m3 import ingest_handler, read_handler
+import certifi
+import psycopg
+import psycopg_binary
+from lambdaops_m3 import ingest_handler, read_handler, dsql_store
 root = Path('/out/smoke').resolve()
-for module in (boto3, botocore, ingest_handler, read_handler):
+for module in (boto3, botocore, certifi, psycopg, psycopg_binary, ingest_handler, read_handler, dsql_store):
     if root not in Path(module.__file__).resolve().parents:
         raise RuntimeError(f'{module.__name__} was not imported from the ZIP')
 if not callable(ingest_handler.lambda_handler) or not callable(read_handler.lambda_handler):
     raise RuntimeError('A Lambda handler is not callable')
+if psycopg.pq.__impl__ != 'binary' or not Path(certifi.where()).is_file():
+    raise RuntimeError('The packaged binary driver or TLS roots are unavailable')
 """
     env = os.environ.copy()
     env["PYTHONPATH"] = str(smoke_dir)

@@ -7,9 +7,10 @@ From the repository root, build with Docker and an explicit output directory:
 ```
 
 The script targets the Python 3.12 Lambda Linux x86_64 runtime. It installs
-`backend/requirements.txt` (including boto3 and its dependencies), copies only
+`backend/requirements.txt` (including boto3, binary psycopg 3 and certifi), copies only
 the `lambdaops_m3` Python modules, creates `m3-core.zip`, then imports both
-handlers and boto3 from an extracted copy of that ZIP. It writes
+handlers, the DSQL adapter, boto3 and the binary driver from that ZIP. It also
+checks the packaged TLS CA bundle. It writes
 `m3-core.zip.sha256` and `requirements-resolved.txt` beside the ZIP, and
 checks the SHA-256 after moving the archive to the output directory. The ZIP
 has `lambdaops_m3/` and dependency directories at its root. Tests, fixtures,

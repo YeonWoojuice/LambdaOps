@@ -8,7 +8,7 @@ import os
 from typing import Any, Dict, Iterable
 
 from .contracts import parse_eventbridge_alarm
-from .store import DynamoIncidentStore
+from .dsql_connection import build_store
 
 LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         raise ValueError("ALARM_ARNS must be a non-empty JSON array")
     return process_batch(
         event,
-        DynamoIncidentStore(os.environ["INCIDENTS_TABLE_NAME"]),
+        build_store(),
         allowed,
         os.environ["SERVICE"],
         os.environ["ENVIRONMENT"],
