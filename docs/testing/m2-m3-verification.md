@@ -96,10 +96,24 @@
 
 ## 2026-10-28 실제 Cognito 조회 인증의 배포 준비
 
-Slash 개인 foundation에 기존 web client와 분리된 LambdaOps operator client 및 resource server를 작성했다. 같은 개인 pool을 재사용하며, 읽기 scope는 `lambdaops/incidents.read`다. 기존 Slash callback `http://localhost:5173/callback`은 유지하고, 로컬 operator 로그인은 `http://localhost:8765/callback`의 code+PKCE를 사용한다. Cognito 자원은 아직 생성하지 않았다.
+Slash 개인 foundation에 기존 web client와 분리된 LambdaOps operator client 및 resource server를 작성했다. 같은 개인 pool을 재사용하며, 읽기 scope는 `lambdaops/incidents.read`다. 기존 Slash callback `http://localhost:5173/callback`은 유지하고, 로컬 operator 로그인은 `http://localhost:8765/callback`의 code+PKCE를 사용한다. 이 설정은 생성 전에 준비한 코드다. 이후 foundation 적용과 현재 상태는 아래 후속 검증 결과를 따른다.
 
 foundation 출력 `lambdaops_m3_auth_tfvars`는 `jwt_issuer`, operator client ID인 `jwt_audience`, `read_authorization_scope`를 제공한다. M3 Terraform은 같은 scope를 JWT 경로와 조회 Lambda에 전달한다. 일반 기본값 `incidents:read`를 바꾸지 않고 Cognito 배포 값으로 명시한다. 기존 web client의 `openid email profile`이나 client ID를 조회 권한으로 대신하지 않는다.
 
 Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후 code+PKCE 로그인과 읽기 프로브를 실행하도록 준비했다. 토큰은 저장소 밖의 새 600 권한 파일에 저장하고, 목록·상세 200, 토큰 없음 401, **같은 operator client에서 openid만 요청한 access token**의 403을 확인한다. 다른 client의 토큰은 audience 실패와 scope 실패를 혼동할 수 있어 403 시험에 사용하지 않는다. 목록만 확인한 결과나 미존재 상세 404를 인증된 Detail 완료 증거로 사용하지 않는다.
 
 이 준비는 실제 JWT 검증 완료가 아니다. 로컬 fixture는 서명을 검증하지 않으며, 실제 Cognito·HTTP API가 생성된 뒤 그 발급자·audience·scope와 API Gateway 서명 검증을 통과한 기존 Incident의 상세 200을 남겨야 한다. 모든 초대 사용자가 operator client의 허용 scope를 요청할 수 있는 현재 개인 pool 범위이며, 별도 client를 사용자별 관리자 권한 경계로 간주하지 않는다. 다중 사용자·테넌트별 소유권 설계는 변경하지 않았다.
+
+### 후속 검증: Cognito·ECR foundation 생성 완료
+
+2026-10-28 계정 `642935793048`·서울 리전에 Slash 개인 foundation을 실제 적용했다. ECR 저장소 6개·보관 정책 6개, Cognito pool·client 2개·resource server·domain으로 총 17개를 생성했으며 기존 자원 변경·삭제는 0개다. 적용 후 재계획도 변경 0개다. 이 작업은 LambdaOps의 DSQL·Lambda 재배포나 HTTP API 활성화를 포함하지 않는다.
+
+| 확인 항목 | 실제 결과 |
+| --- | --- |
+| Cognito pool·domain | `slash-lab`, domain ACTIVE, 초대 사용자만 허용 |
+| 앱 구분 | Slash web·LambdaOps operator의 callback·code flow·scope 일치, client secret 없음 |
+| 로그인 기반 | 로그인 폼 HTTP 200, issuer discovery 200, 공개 서명 키 2개 조회 |
+| 사용자·이미지 | 사용자 0명, ECR 저장소 6개 모두 이미지 0개 |
+| 읽기 권한 연결값 | 실제 issuer·operator client ID·`lambdaops/incidents.read` 출력 확보 |
+
+[Slash 생성·검증 근거](https://github.com/YeonWoojuice/slash-personal/blob/main/docs/observability/results/2026-10-28-foundation-provision.json)에 비밀값 없는 결과를 기록했다. state와 실제 tfvars는 개인 로컬 경로에 권한을 제한하고 Git에서 제외했다. 사용자 로그인·토큰 발급·인증된 Detail 조회는 아직 검증하지 않았으며, 다음 단계에서 시험 사용자·실제 토큰·M3 HTTP API를 연결한다.

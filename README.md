@@ -26,7 +26,7 @@ flowchart LR
 | Terraform 상태 저장소 | 암호화·버전 관리 S3와 DynamoDB 잠금 설정 | dev 계정에 생성, 원격 상태 이전 완료 |
 | M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 대상 Alarm·M2 상태 파일 없음 확인. 실제 AWS 지표·임계값·Alarm 전이 미검증 |
 | M3 Incident Core | DSQL 저장·조회, 고정 ID·검색·필터·번호 페이지·건수 구현 | 전용 DSQL·Lambda 2개·큐·권한 생성. EventBridge 미연결·SQS 소비 비활성·HTTP API 미생성 |
-| 로그인 | OIDC/JWT 연결점 구현, Cognito 설정 방법 문서화 | Cognito는 검토 중이며 미생성 |
+| 로그인 | 기존 JWT 연결점과 Cognito operator client·읽기 scope 구성 | Slash 개인 foundation의 Cognito 생성·로그인 페이지 확인. 사용자 등록·실제 JWT·HTTP 조회는 다음 단계 |
 | 화면 | 승인된 Cloudscape 그래프 시안과 React·TypeScript 프런트 코드가 있습니다. 화면은 예시 Incident·지표로 동작합니다. | 프런트 배포 없음. 실제 JWT·CORS·CloudWatch 시계열 조회 연결 전 |
 
 AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 합니다. 인프라 생성, DB 연결, 실제 이벤트·JWT 검증을 구분하며 M3는 In Progress입니다.
@@ -53,7 +53,7 @@ AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 �
 
 [새 조회 계약](docs/contracts/incident-api.md)은 `page`·`pageSize`, 서비스·환경·상태·기간 필터, 검색·정렬·정확한 건수를 정의합니다. 상세는 이전 ID로 대표를 찾고 요청 ID와 연결 여부를 반환합니다. 조회 주체는 인증된 단일 프로젝트 운영자입니다. 기존 DynamoDB 모드와 프런트는 `limit`·`nextToken`을 유지하므로 공개 API 연결 전 프런트를 새 계약에 맞춰야 합니다. 다음 순서는 **DB·Lambda 연결 확인 → 실제 M2 이벤트·JWT 연결 → 프런트 연동·비용 검증**입니다.
 
-선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Cognito·Agent 관련 선택은 이번 DB 결정과 별개입니다.
+선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Agent 관련 선택은 이번 DB 결정과 별개입니다. Cognito의 생성·검증 상태는 위 표와 환경 검증 기록을 따릅니다.
 
 현재 M3에서는 **Alarm 에피소드당 대표 Incident 한 건**을 만듭니다. DSQL 목표에서 같은 에피소드의 기존 ID를 보존하는 연결용 행은 목록·검색·전체 건수에서 제외합니다. 동일 이벤트는 계정·리전·Alarm ARN·상태·전환 시각으로 중복을 판별합니다. `OK`는 해당 Alarm 에피소드의 종료 시각을 기록하지만 서비스 전체 복구나 Incident `Resolved`를 뜻하지 않습니다. `INSUFFICIENT_DATA`는 종료로 처리하지 않으며, 오래된 전환 이벤트가 최신 상태를 덮어쓰지 못하도록 합니다. 자세한 규칙은 [Alarm 이벤트 계약](docs/contracts/alarm-event.md)과 [백엔드 설명](backend/README.md)에 있습니다.
 
@@ -103,7 +103,7 @@ M3 기반 자원과 실제 이벤트·사용자 조회 연결을 단계별로 �
 
 1. Slash API·DB의 AWS 시험 실행 방식을 정하고 `LambdaOps/Slash` 지표 5종이 60초마다 발행되는지 확인합니다.
 2. 실제 지표와 트래픽으로 M2의 임계값·최소 요청 수를 정한 뒤 Alarm 3개를 적용하고 `ALARM → OK`를 확인합니다.
-3. Cognito를 사용할지와 Incident를 읽을 사용자 범위를 정하고, 실제 발급된 읽기 권한 토큰을 준비합니다.
+3. 생성한 개인 Cognito pool에 시험 사용자를 등록하고, 기존 operator client에서 실제 읽기 권한 토큰을 준비합니다.
 4. 준비된 M2 출력과 JWT를 Terraform에 연결한 뒤 fixture 재생으로 중복·역순·실패·OK 처리, 인증된 상세 조회와 실제 장애 전체 경로를 검증합니다. 프런트 조회 계약도 함께 전환합니다.
 
 M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 프런트 코드는 별도 예시 화면 단계이며 M3 Core의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
