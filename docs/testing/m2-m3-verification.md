@@ -93,3 +93,13 @@
 6. 실제 Alarm 전이와 API 조회를 연결한 결과를 남기고, DSQL의 대표 데이터 저장·조회·검색·건수 비용을 측정. 배포 성공만으로 전체 흐름 완료로 표시하지 않음.
 
 증거에는 **일시, AWS 계정·리전·환경, 사용한 코드 커밋, 시험 입력, 기대 결과, 실제 결과, 관련 로그·Alarm 이력·API 응답 링크**를 기록합니다. 토큰·비밀값·개인정보는 기록에 넣지 않습니다. M2와 M3의 상태는 기존 [마일스톤](https://app.notion.com/p/37684699df0043bd99cde242c7eeda19)과 작업 보드에서 갱신하고, 근거 없는 완료 표시를 하지 않습니다.
+
+## 2026-10-28 실제 Cognito 조회 인증의 배포 준비
+
+Slash 개인 foundation에 기존 web client와 분리된 LambdaOps operator client 및 resource server를 작성했다. 같은 개인 pool을 재사용하며, 읽기 scope는 `lambdaops/incidents.read`다. 기존 Slash callback `http://localhost:5173/callback`은 유지하고, 로컬 operator 로그인은 `http://localhost:8765/callback`의 code+PKCE를 사용한다. Cognito 자원은 아직 생성하지 않았다.
+
+foundation 출력 `lambdaops_m3_auth_tfvars`는 `jwt_issuer`, operator client ID인 `jwt_audience`, `read_authorization_scope`를 제공한다. M3 Terraform은 같은 scope를 JWT 경로와 조회 Lambda에 전달한다. 일반 기본값 `incidents:read`를 바꾸지 않고 Cognito 배포 값으로 명시한다. 기존 web client의 `openid email profile`이나 client ID를 조회 권한으로 대신하지 않는다.
+
+Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후 code+PKCE 로그인과 읽기 프로브를 실행하도록 준비했다. 토큰은 저장소 밖의 새 600 권한 파일에 저장하고, 목록·상세 200, 토큰 없음 401, **같은 operator client에서 openid만 요청한 access token**의 403을 확인한다. 다른 client의 토큰은 audience 실패와 scope 실패를 혼동할 수 있어 403 시험에 사용하지 않는다. 목록만 확인한 결과나 미존재 상세 404를 인증된 Detail 완료 증거로 사용하지 않는다.
+
+이 준비는 실제 JWT 검증 완료가 아니다. 로컬 fixture는 서명을 검증하지 않으며, 실제 Cognito·HTTP API가 생성된 뒤 그 발급자·audience·scope와 API Gateway 서명 검증을 통과한 기존 Incident의 상세 200을 남겨야 한다. 모든 초대 사용자가 operator client의 허용 scope를 요청할 수 있는 현재 개인 pool 범위이며, 별도 client를 사용자별 관리자 권한 경계로 간주하지 않는다. 다중 사용자·테넌트별 소유권 설계는 변경하지 않았다.
