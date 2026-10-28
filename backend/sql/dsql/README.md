@@ -1,6 +1,8 @@
 # M3 Incident DSQL 초기 스키마
 
-승인한 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 실행 가능한 SQL로 옮긴다. `public` 스키마에 테이블 3개, 컬럼 32개, 인덱스 10개를 정의한다. Lambda에는 DSQL 선택 경로가 있지만 기본 설정과 Terraform은 DynamoDB다. 이 SQL만으로 실제 DSQL 자원이 생성되거나 연결되지는 않는다.
+승인한 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 실행 가능한 SQL로 옮긴다. `public` 스키마에 테이블 3개, 컬럼 32개, 인덱스 10개를 정의한다. Terraform은 DSQL을 기본으로 선택하며 클러스터와 Lambda 권한을 구성한다. 이 SQL은 DB 내부의 정의를 담당한다.
+
+실제 설치는 [DB 초기화 도구](../../scripts/dsql-bootstrap.md)의 `preview → schema → roles → verify` 순서를 사용한다. 도구는 아래 SQL을 그대로 실행하고 ASYNC 완료·카탈로그·권한을 검사한다. 아래 수동 명령은 각 단계의 원리와 실패 위치를 확인하는 용도다. 실제 적용 결과는 [환경 검증 기록](../../../docs/testing/m2-m3-verification.md)을 따른다.
 
 ## 파일과 실행 순서
 
@@ -19,7 +21,7 @@
 
 ## 1. 테이블 생성
 
-대상은 아직 이 테이블이 없는 초기 DB다. 연결 정보와 스키마 생성 권한을 먼저 준비한다. DSQL의 IAM 연결과 수집·조회 계정의 권한 분리는 후속 인프라 작업에서 구성한다. 연결 정보·토큰은 SQL 파일에 넣지 않는다.
+대상은 아직 이 테이블이 없는 초기 DB다. 연결 정보와 스키마 생성 권한을 먼저 준비한다. Terraform의 `dsql_bootstrap` 출력과 초기화 도구로 IAM 연결·수집 및 조회 권한을 구성한다. 연결 정보·토큰은 SQL 파일에 넣지 않는다.
 
 DSQL에서는 한 트랜잭션에 DDL 하나만 실행할 수 있다. 001~007은 각각 DDL 하나로 구성하며, 생성 전체를 `BEGIN`이나 `psql --single-transaction`으로 묶지 않는다. DDL과 테스트 데이터 INSERT도 같은 트랜잭션에 넣지 않는다. [AWS DSQL DDL 제약](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-ddl.html)
 

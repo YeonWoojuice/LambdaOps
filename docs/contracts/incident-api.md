@@ -1,6 +1,6 @@
 # M3 Incident 조회 API 계약
 
-상태: **DSQL 저장·조회 코드의 목록·상세 계약** (2026-10-28). DSQL 모드와 기존 DynamoDB 모드를 구분한다. 실제 DSQL 연결, AWS 배포, JWT 발급자 연동과 프런트의 새 계약 적용은 별도 검증 대상이다. [현재·목표 아키텍처](../architecture/overview.md), [Incident DB 결정](../decisions/0001-incident-db.md).
+상태: **DSQL 저장·조회 코드의 목록·상세 계약** (2026-10-28). dev Terraform은 DSQL을 선택하며 클러스터와 두 Lambda를 생성했다. HTTP API는 실제 JWT 발급자 구성 전까지 비활성이다. 실제 연결 검사와 인증·프런트 검증은 [환경 검증 기록](../testing/m2-m3-verification.md)에서 구분한다. [현재·목표 아키텍처](../architecture/overview.md), [Incident DB 결정](../decisions/0001-incident-db.md).
 
 ## 적용 범위와 인증
 
@@ -11,7 +11,7 @@
 | 읽기 권한 | 기본 `incidents:read`다. `REQUIRED_READ_SCOPE`로 발급자의 실제 scope에 맞출 수 있다. 권한이 있는 운영자는 이 프로젝트의 전체 Incident를 조회한다. |
 | 성공 응답 | JSON, `Cache-Control: no-store`를 사용한다. 시각은 마이크로초를 포함한 UTC 문자열로 반환한다. |
 | DSQL 선택 | `INCIDENT_STORE=dsql`일 때 아래 페이지 번호 계약을 사용한다. DB 연결·권한·스키마 준비가 필요하며 코드 추가만으로 배포가 전환되지는 않는다. |
-| 기존 호환 경로 | 기본 DynamoDB 모드에서는 문서 끝의 `limit`·`nextToken` 계약을 유지한다. 프런트와 API를 새 계약으로 함께 전환하기 전에는 두 형식을 섞지 않는다. |
+| 기존 호환 경로 | DynamoDB를 명시하거나 Terraform 밖에서 저장 방식을 생략한 Python 호출은 문서 끝의 `limit`·`nextToken` 계약을 유지한다. 실제 dev Lambda는 DSQL을 명시한다. 프런트와 API의 두 형식을 섞지 않는다. |
 
 권한 검사는 목록과 상세 모두에 적용한다. JWT 읽기 scope는 사용자별 소유권 필터와 다르다. 현재 범위를 다중 사용자 데이터 격리가 구현된 것으로 표시하지 않는다.
 
@@ -137,7 +137,7 @@ API Gateway가 Lambda 호출 전에 거부한 요청은 본문이 다를 수 있
 | 상세 응답 | 기존 요약과 `stateHistory`다. DynamoDB의 일관된 읽기를 사용한다. DSQL의 `requestedIncidentId`·`redirected` 계약은 적용하지 않는다. |
 | 지원 범위 | 검색·서비스/환경/상태/기간 필터·페이지 번호·정확한 건수는 이 호환 경로에서 제공하지 않는다. |
 
-DSQL 모드에 기존 `limit`·`nextToken`을 보내면 `400`으로 거부한다. 서로 다른 페이징 방식을 조용히 섞지 않는다. 프런트 호출 형식 변경, 실제 JWT·HTTP 검증, Terraform 자원 전환과 기존 데이터 이관은 이번 조회 계약 작성만으로 완료되지 않는다.
+DSQL 모드에 기존 `limit`·`nextToken`을 보내면 `400`으로 거부한다. 서로 다른 페이징 방식을 조용히 섞지 않는다. DSQL 인프라 생성과 프런트 호출 형식 변경, 실제 JWT·HTTP 검증, 기존 데이터 이관은 별도 작업이다.
 
 ## 구현·검증 근거
 

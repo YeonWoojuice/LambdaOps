@@ -4,10 +4,48 @@ data "aws_region" "current" {}
 locals {
   # Keep Lambda, SQS, and IAM names within their service limits while retaining
   # a stable suffix if long service/environment names share the same prefix.
-  name_prefix = "lambdaops-${substr(var.environment, 0, 12)}-${substr(var.service, 0, 15)}-${substr(sha1("${var.environment}:${var.service}"), 0, 8)}"
+  name_prefix      = "lambdaops-${substr(var.environment, 0, 12)}-${substr(var.service, 0, 15)}-${substr(sha1("${var.environment}:${var.service}"), 0, 8)}"
+  dsql_enabled     = var.incident_store == "dsql"
+  storage_ready    = !local.dsql_enabled || var.dsql_schema_ready
+  ingestion_active = var.ingestion_enabled && local.storage_ready && var.connect_m2_alarms
+  http_api_active  = var.enable_http_api && local.storage_ready
+  dsql_endpoint    = local.dsql_enabled ? "${aws_dsql_cluster.incidents[0].identifier}.dsql.${data.aws_region.current.name}.on.aws" : null
+
+  database_environment = local.dsql_enabled ? {
+    INCIDENT_STORE = "dsql"
+    DSQL_ENDPOINT  = local.dsql_endpoint
+    DSQL_REGION    = data.aws_region.current.name
+    } : {
+    INCIDENT_STORE       = "dynamodb"
+    INCIDENTS_TABLE_NAME = aws_dynamodb_table.incidents[0].name
+  }
+
+  ingest_database_statements = local.dsql_enabled ? [{
+    Sid      = "ConnectIncidentDatabase"
+    Effect   = "Allow"
+    Action   = ["dsql:DbConnect"]
+    Resource = [aws_dsql_cluster.incidents[0].arn]
+    }] : [{
+    Sid      = "WriteIncidentTable"
+    Effect   = "Allow"
+    Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:TransactWriteItems"]
+    Resource = [aws_dynamodb_table.incidents[0].arn, "${aws_dynamodb_table.incidents[0].arn}/index/GSI1"]
+  }]
+  read_database_statements = local.dsql_enabled ? [{
+    Sid      = "ConnectIncidentDatabase"
+    Effect   = "Allow"
+    Action   = ["dsql:DbConnect"]
+    Resource = [aws_dsql_cluster.incidents[0].arn]
+    }] : [{
+    Sid      = "ReadIncidentTable"
+    Effect   = "Allow"
+    Action   = ["dynamodb:GetItem", "dynamodb:Query"]
+    Resource = [aws_dynamodb_table.incidents[0].arn, "${aws_dynamodb_table.incidents[0].arn}/index/GSI1"]
+  }]
 }
 
 resource "aws_dynamodb_table" "incidents" {
+  count        = local.dsql_enabled ? 0 : 1
   name         = "${local.name_prefix}-incidents"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "PK"
@@ -49,6 +87,10 @@ resource "aws_dynamodb_table" "incidents" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_sqs_queue" "eventbridge_dlq" {
@@ -89,8 +131,10 @@ resource "aws_sqs_queue_redrive_allow_policy" "consumer_dlq" {
 }
 
 resource "aws_cloudwatch_event_rule" "alarm_state_change" {
+  count       = var.connect_m2_alarms ? 1 : 0
   name        = "${local.name_prefix}-alarm-state"
   description = "Route only the three M2 CloudWatch alarm state changes to LambdaOps M3."
+  state       = local.ingestion_active ? "ENABLED" : "DISABLED"
 
   event_pattern = jsonencode({
     source        = ["aws.cloudwatch"]
@@ -118,6 +162,7 @@ resource "aws_cloudwatch_event_rule" "alarm_state_change" {
 }
 
 resource "aws_sqs_queue_policy" "ingest" {
+  count     = var.connect_m2_alarms ? 1 : 0
   queue_url = aws_sqs_queue.ingest.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -128,13 +173,14 @@ resource "aws_sqs_queue_policy" "ingest" {
       Action    = "sqs:SendMessage"
       Resource  = aws_sqs_queue.ingest.arn
       Condition = {
-        ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.alarm_state_change.arn }
+        ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.alarm_state_change[0].arn }
       }
     }]
   })
 }
 
 resource "aws_sqs_queue_policy" "eventbridge_dlq" {
+  count     = var.connect_m2_alarms ? 1 : 0
   queue_url = aws_sqs_queue.eventbridge_dlq.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -145,14 +191,15 @@ resource "aws_sqs_queue_policy" "eventbridge_dlq" {
       Action    = "sqs:SendMessage"
       Resource  = aws_sqs_queue.eventbridge_dlq.arn
       Condition = {
-        ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.alarm_state_change.arn }
+        ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.alarm_state_change[0].arn }
       }
     }]
   })
 }
 
 resource "aws_cloudwatch_event_target" "ingest" {
-  rule      = aws_cloudwatch_event_rule.alarm_state_change.name
+  count     = var.connect_m2_alarms ? 1 : 0
+  rule      = aws_cloudwatch_event_rule.alarm_state_change[0].name
   target_id = "M3IngestQueue"
   arn       = aws_sqs_queue.ingest.arn
 
@@ -214,13 +261,7 @@ resource "aws_iam_role_policy" "ingest" {
   role = aws_iam_role.ingest.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid      = "WriteIncidentTable"
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:TransactWriteItems"]
-        Resource = [aws_dynamodb_table.incidents.arn, "${aws_dynamodb_table.incidents.arn}/index/GSI1"]
-      },
+    Statement = concat(local.ingest_database_statements, [
       {
         Sid      = "ConsumeIngestQueue"
         Effect   = "Allow"
@@ -233,7 +274,7 @@ resource "aws_iam_role_policy" "ingest" {
         Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "${trimsuffix(aws_cloudwatch_log_group.ingest.arn, ":*")}:*"
       },
-    ]
+    ])
   })
 }
 
@@ -242,20 +283,14 @@ resource "aws_iam_role_policy" "read" {
   role = aws_iam_role.read.id
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid      = "ReadIncidentTable"
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:Query"]
-        Resource = [aws_dynamodb_table.incidents.arn, "${aws_dynamodb_table.incidents.arn}/index/GSI1"]
-      },
+    Statement = concat(local.read_database_statements, [
       {
         Sid      = "WriteReadLogs"
         Effect   = "Allow"
         Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "${trimsuffix(aws_cloudwatch_log_group.read.arn, ":*")}:*"
       },
-    ]
+    ])
   })
 }
 
@@ -270,12 +305,13 @@ resource "aws_lambda_function" "ingest" {
   source_code_hash = filebase64sha256(var.ingest_package_zip_path)
 
   environment {
-    variables = {
-      INCIDENTS_TABLE_NAME = aws_dynamodb_table.incidents.name
-      ALARM_ARNS           = jsonencode(values(var.alarm_arns))
-      SERVICE              = var.service
-      ENVIRONMENT          = var.environment
-    }
+    variables = merge(local.database_environment, local.dsql_enabled ? {
+      DSQL_DB_USER = var.dsql_ingest_db_user
+      } : {}, {
+      ALARM_ARNS  = jsonencode(values(var.alarm_arns))
+      SERVICE     = var.service
+      ENVIRONMENT = var.environment
+    })
   }
 
   depends_on = [aws_iam_role_policy.ingest, aws_cloudwatch_log_group.ingest]
@@ -287,15 +323,30 @@ resource "aws_lambda_function" "read" {
   role             = aws_iam_role.read.arn
   handler          = "lambdaops_m3.read_handler.lambda_handler"
   runtime          = "python3.12"
-  timeout          = 10
+  timeout          = var.read_timeout_seconds
   memory_size      = 256
   filename         = var.read_package_zip_path
   source_code_hash = filebase64sha256(var.read_package_zip_path)
 
   environment {
-    variables = {
-      INCIDENTS_TABLE_NAME = aws_dynamodb_table.incidents.name
-      REQUIRED_READ_SCOPE  = var.read_authorization_scope
+    variables = merge(local.database_environment, local.dsql_enabled ? {
+      DSQL_DB_USER = var.dsql_read_db_user
+      } : {}, {
+      REQUIRED_READ_SCOPE = var.read_authorization_scope
+    })
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.connect_m2_alarms ? length(var.alarm_arns) == 3 : length(var.alarm_arns) == 0
+      error_message = "connect_m2_alarms requires exactly the three deployed M2 outputs; leave alarm_arns empty while disconnected."
+    }
+    precondition {
+      condition = !var.enable_http_api || (
+        can(regex("^https://[^[:space:]]+$", var.jwt_issuer)) &&
+        can(regex("[^[:space:]]", var.jwt_audience))
+      )
+      error_message = "Enabling the HTTP API requires a real HTTPS JWT issuer and nonempty audience."
     }
   }
 
@@ -306,20 +357,23 @@ resource "aws_lambda_function" "read" {
 resource "aws_lambda_event_source_mapping" "ingest" {
   event_source_arn        = aws_sqs_queue.ingest.arn
   function_name           = aws_lambda_function.ingest.arn
-  batch_size              = 10
+  batch_size              = var.ingest_batch_size
+  enabled                 = local.ingestion_active
   function_response_types = ["ReportBatchItemFailures"]
 
   depends_on = [aws_iam_role_policy.ingest]
 }
 
 resource "aws_apigatewayv2_api" "incidents" {
+  count         = local.http_api_active ? 1 : 0
   name          = "${local.name_prefix}-api"
   protocol_type = "HTTP"
   tags          = var.tags
 }
 
 resource "aws_apigatewayv2_authorizer" "jwt" {
-  api_id           = aws_apigatewayv2_api.incidents.id
+  count            = local.http_api_active ? 1 : 0
+  api_id           = aws_apigatewayv2_api.incidents[0].id
   name             = "${local.name_prefix}-jwt"
   authorizer_type  = "JWT"
   identity_sources = ["$request.header.Authorization"]
@@ -331,49 +385,55 @@ resource "aws_apigatewayv2_authorizer" "jwt" {
 }
 
 resource "aws_apigatewayv2_integration" "read" {
-  api_id                 = aws_apigatewayv2_api.incidents.id
+  count                  = local.http_api_active ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.incidents[0].id
   integration_type       = "AWS_PROXY"
   integration_uri        = aws_lambda_function.read.invoke_arn
   payload_format_version = "2.0"
 }
 
 resource "aws_apigatewayv2_route" "list_incidents" {
-  api_id               = aws_apigatewayv2_api.incidents.id
+  count                = local.http_api_active ? 1 : 0
+  api_id               = aws_apigatewayv2_api.incidents[0].id
   route_key            = "GET /incidents"
-  target               = "integrations/${aws_apigatewayv2_integration.read.id}"
+  target               = "integrations/${aws_apigatewayv2_integration.read[0].id}"
   authorization_type   = "JWT"
-  authorizer_id        = aws_apigatewayv2_authorizer.jwt.id
+  authorizer_id        = aws_apigatewayv2_authorizer.jwt[0].id
   authorization_scopes = [var.read_authorization_scope]
 }
 
 resource "aws_apigatewayv2_route" "get_incident" {
-  api_id               = aws_apigatewayv2_api.incidents.id
+  count                = local.http_api_active ? 1 : 0
+  api_id               = aws_apigatewayv2_api.incidents[0].id
   route_key            = "GET /incidents/{incidentId}"
-  target               = "integrations/${aws_apigatewayv2_integration.read.id}"
+  target               = "integrations/${aws_apigatewayv2_integration.read[0].id}"
   authorization_type   = "JWT"
-  authorizer_id        = aws_apigatewayv2_authorizer.jwt.id
+  authorizer_id        = aws_apigatewayv2_authorizer.jwt[0].id
   authorization_scopes = [var.read_authorization_scope]
 }
 
 resource "aws_apigatewayv2_stage" "default" {
-  api_id      = aws_apigatewayv2_api.incidents.id
+  count       = local.http_api_active ? 1 : 0
+  api_id      = aws_apigatewayv2_api.incidents[0].id
   name        = "$default"
   auto_deploy = true
   tags        = var.tags
 }
 
 resource "aws_lambda_permission" "list_incidents" {
+  count         = local.http_api_active ? 1 : 0
   statement_id  = "AllowApiListIncidents"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.read.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.incidents.execution_arn}/*/GET/incidents"
+  source_arn    = "${aws_apigatewayv2_api.incidents[0].execution_arn}/*/GET/incidents"
 }
 
 resource "aws_lambda_permission" "get_incident" {
+  count         = local.http_api_active ? 1 : 0
   statement_id  = "AllowApiGetIncident"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.read.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.incidents.execution_arn}/*/GET/incidents/*"
+  source_arn    = "${aws_apigatewayv2_api.incidents[0].execution_arn}/*/GET/incidents/*"
 }

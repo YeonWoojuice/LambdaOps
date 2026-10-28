@@ -1,47 +1,108 @@
-# M3 incident core infrastructure
+# M3 Incident core infrastructure
 
-## Storage decision — 2026-10-28
+This module provisions the approved single-Region Aurora DSQL Incident database,
+separate ingest/read IAM roles and Python 3.12 Lambdas, an ingest queue and two
+dead-letter queues. M2 event capture and the JWT HTTP API are explicit activation
+steps. It does not create Slash, metrics, Cognito, or database tables through a
+Terraform provisioner. [DB decision](../../../docs/decisions/0001-incident-db.md).
 
-Aurora DSQL is the selected Incident database. This module still provisions
-DynamoDB; the DSQL resource, database roles, IAM permissions, Lambda connection
-settings, and schema initialization are pending. Update and validate those
-pieces with the DSQL backend before using this module for the selected design.
-The EventBridge/SQS/Lambda path and separate read/write roles remain part of M3.
-The bootstrap DynamoDB table is for Terraform state locking, not Incident data.
-See the [Incident DB decision](../../../docs/decisions/0001-incident-db.md).
+## Provision, initialize, then activate
 
-This module connects the three M2 CloudWatch alarms to an SQS-backed incident ingester and exposes authenticated incident reads. It creates one DynamoDB table, an EventBridge rule, an ingest queue, separate delivery and consumer dead-letter queues, two Python Lambdas, and an HTTP API. It does not create an AWS environment, publish the Slash metrics, or deploy itself.
+| Stage | Inputs | Result |
+| --- | --- | --- |
+| Provision | `incident_store="dsql"` (default), `dsql_schema_ready=false`, `connect_m2_alarms=false`, `enable_http_api=false` | DSQL, IAM roles, both Lambdas and queues exist. No EventBridge rule or public HTTP API; SQS processing is disabled. |
+| Initialize | Export `dsql_bootstrap`; apply and verify the approved schema, ASYNC indexes, custom DB roles and exact IAM mappings using administrator credentials | Three tables and runtime SQL privileges are ready. Runtime Lambda roles are not administrators. |
+| Connect M2 | Real M2 `alarm_arns`, `connect_m2_alarms=true`, `dsql_schema_ready=true` | EventBridge capture and SQS processing activate when `ingestion_enabled=true`. |
+| Expose reads | `enable_http_api=true`, real `jwt_issuer`/`jwt_audience`, verified read scope, `dsql_schema_ready=true` | Only two JWT-protected GET routes are created. |
 
-## Inputs and code contract
-
-- Pass the existing M2 module's `alarm_arns` output directly. The map must contain `api_5xx_rate`, `api_average_latency`, and `db_average_query_latency`; the ARNs must be in this provider's account and region.
-- Build the two ZIP files before planning. Each ZIP must place the `lambdaops_m3/` package at its root. Both may point to the same ZIP if it contains both handlers and their dependencies. `source_code_hash` tracks ZIP changes.
-- The ingest handler is `lambdaops_m3.ingest_handler.lambda_handler`. Its environment contains `INCIDENTS_TABLE_NAME`, `ALARM_ARNS` (a JSON array of allowed ARNs), `SERVICE`, and `ENVIRONMENT`. It receives an SQS batch whose `body` is the full EventBridge alarm state-change JSON.
-- The read handler is `lambdaops_m3.read_handler.lambda_handler`. Its environment contains `INCIDENTS_TABLE_NAME` and `REQUIRED_READ_SCOPE`. API Gateway invokes it with HTTP API payload format 2.0.
-- The table has String `PK` and `SK` keys plus `GSI1PK` and `GSI1SK` String keys for index `GSI1` (`ALL` projection). The application owns the item layout. There is no second incident database.
+`dsql_schema_ready` records completed verification; setting it does not run SQL
+or establish readiness itself. The [SQL guide](../../../backend/sql/dsql/README.md)
+and [dev deployment guide](../../environments/dev/README.md) describe the workflow.
+DB and Lambdas may be provisioned before M2 or the identity provider is ready.
+Do not invent Alarm ARNs or issuer values to pass a plan.
 
 ```hcl
 module "slash_m3_core" {
-  source = "../../modules/m3-core"
+  source = "../../../modules/m3-core"
 
   service                 = "slash-api"
   environment             = "dev"
-  alarm_arns              = module.slash_m2_alarms.alarm_arns
-  ingest_package_zip_path = abspath("${path.module}/build/m3-ingest.zip")
-  read_package_zip_path   = abspath("${path.module}/build/m3-read.zip")
-  jwt_issuer              = var.jwt_issuer
-  jwt_audience            = var.jwt_audience
+  ingest_package_zip_path = abspath("./build/m3-core.zip")
+  read_package_zip_path   = abspath("./build/m3-core.zip")
+
+  dsql_schema_ready = false
+  connect_m2_alarms = false
+  enable_http_api  = false
 }
 ```
 
-## Delivery and access
+## Database and permissions
 
-The EventBridge rule accepts only `aws.cloudwatch` / `CloudWatch Alarm State Change` events whose resource ARN matches one of the three M2 alarms and whose new state is `ALARM`, `OK`, or `INSUFFICIENT_DATA`. It does not route alarm configuration changes. EventBridge can retry failed delivery and sends exhausted events to its own dead-letter queue. The ingest queue retries failed Lambda records; after five receives it moves them to a separate consumer dead-letter queue. The Lambda event source mapping enables `ReportBatchItemFailures`, so the handler must return `{"batchItemFailures":[{"itemIdentifier":"<messageId>"}]}` for each failed record. The ingester still needs idempotent writes because SQS can redeliver a successful message.
+The DSQL cluster uses the provider region and service-default encryption.
+Service deletion protection and Terraform `prevent_destroy` are enabled.
+Changing these protections requires an explicit data-retention decision.
 
-The source queue visibility timeout is six times the configurable ingest Lambda timeout. Both queues and the incident table use encryption at rest; the table has point-in-time recovery. Each Lambda has its own IAM role. The read role can only read from the incident table and its `GSI1` index. Lambda log groups retain logs for 30 days.
+| Runtime | IAM permission | Database identity and SQL privileges |
+| --- | --- | --- |
+| Ingest Lambda | `dsql:DbConnect` on this exact cluster ARN, ingest SQS consumption, own log writes | `lambdaops_ingest` by default; SELECT and selected INSERT/UPDATE grants from bootstrap SQL |
+| Read Lambda | `dsql:DbConnect` on this exact cluster ARN, own log writes | `lambdaops_read` by default; SELECT on the three tables only |
 
-The HTTP API publishes only `GET /incidents` and `GET /incidents/{incidentId}`. Both require API Gateway JWT authorization using the supplied HTTPS issuer, audience, and `incidents:read` scope by default. Set `read_authorization_scope` if the existing identity provider issues a different read scope; the same value is passed to the read handler. The read handler should use API Gateway's validated request context and never trust caller-supplied identity headers. No authentication provider is created by this module.
+AWS IAM GRANT maps each Lambda IAM role to its own custom database role.
+DbConnect permits connection; SQL grants determine table operations. DSQL has no
+`dsql:DbUser` IAM condition key, so this module does not invent one. Neither
+runtime role has DbConnectAdmin, schema administration or a DynamoDB grant in
+DSQL mode. [AWS authorization](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/using-database-and-iam-roles.html),
+[supported IAM conditions](https://docs.aws.amazon.com/service-authorization/latest/reference/list_dsql.html).
+
+The `dsql_bootstrap` output contains nonsecret account, region, cluster
+identifier/ARN/endpoint, IAM role ARNs and database role names. No database password
+or IAM token is stored in Terraform inputs/state by this procedure. The endpoint
+uses the documented `{identifier}.dsql.{region}.on.aws` format.
+
+## Lambda and event contract
+
+Build a Linux x86_64 ZIP before planning with `lambdaops_m3/`, boto3, binary
+psycopg 3 and the TLS root bundle. Both functions may use the same ZIP;
+`source_code_hash` tracks changes. The handlers remain
+`lambdaops_m3.ingest_handler.lambda_handler` and
+`lambdaops_m3.read_handler.lambda_handler`.
+
+Both receive `INCIDENT_STORE=dsql`, `DSQL_ENDPOINT`, `DSQL_REGION` and their own
+`DSQL_DB_USER`. Ingest also receives `ALARM_ARNS`, `SERVICE` and `ENVIRONMENT`;
+reads receive `REQUIRED_READ_SCOPE`. No VPC is attached: Lambda's managed network
+reaches the TLS DSQL endpoint without a NAT Gateway. Configuration checks do not
+prove actual connectivity or authorization.
+
+When connected, `alarm_arns` must be the three deployed M2 outputs in this account
+and region: `api_5xx_rate`, `api_average_latency`, `db_average_query_latency`.
+When disconnected, it must be empty. Its empty allowlist makes direct ingest calls
+fail closed until M2 is connected.
+
+EventBridge accepts only CloudWatch Alarm State Change ALARM, OK and
+INSUFFICIENT_DATA events for those ARNs. Delivery failures and exhausted consumer
+retries use separate DLQs. SQS uses ReportBatchItemFailures and a max receive count
+of five. The default batch is one because each record opens a short DSQL
+transaction. Visibility is six times the ingest timeout. Log retention is 30 days.
+
+The HTTP API exposes only `GET /incidents` and `GET /incidents/{incidentId}`
+with JWT and the configured read scope (default `incidents:read`). No
+unauthenticated alternative is created. Enabling the API requires a real issuer
+and audience even if storage readiness still prevents creation.
+
+## Existing DynamoDB deployments
+
+`incident_store="dynamodb"` preserves the old adapter environment and IAM grants.
+Existing resource addresses have moved declarations for count-based resources.
+Keep `connect_m2_alarms=true` and `enable_http_api=true` for an existing active
+legacy deployment; changing those flags disconnects capture or removes its API.
+The legacy table has prevent_destroy, so switching an existing deployment to DSQL
+cannot silently delete it. This module does not migrate data. The bootstrap
+DynamoDB state-lock table is outside this module and unchanged.
 
 ## Verification boundary
 
-Run fixture-based local tests against the handlers before deployment. `terraform fmt` and `terraform validate` check the module's configuration, but do not prove AWS delivery or authentication. Actual M2 alarm deployment and M3 end-to-end replay in AWS remain separate environment verification steps. Before enabling a real environment, confirm the issuer/audience and chosen read scope, build the ZIPs, review `terraform plan`, deploy, then inspect both dead-letter queues and test ALARM, duplicate, OK, INSUFFICIENT_DATA, and out-of-order events.
+AWS provider 5.100.0 introduced aws_dsql_cluster; the dev lock file selects a
+concrete version. Run format/configuration checks and inspect the saved plan.
+Actual schema initialization, IAM/SQL separation, Lambda connections, Alarm
+delivery, JWT validation and query costs each require environment evidence.
+A successful apply does not complete M3.

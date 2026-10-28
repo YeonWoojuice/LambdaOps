@@ -1,5 +1,9 @@
 # M3 Lambda ZIP
 
+For the separate administrator-only DSQL setup tool, see
+[DSQL initialization and runtime permissions](dsql-bootstrap.md). That script is
+not included in the Lambda ZIP.
+
 From the repository root, build with Docker and an explicit output directory:
 
 ```sh

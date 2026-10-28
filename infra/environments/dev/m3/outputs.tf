@@ -4,8 +4,36 @@ output "alarm_event_rule_arn" {
 }
 
 output "incident_table_name" {
-  description = "Single M3 Incident table."
+  description = "Legacy DynamoDB Incident table, or null in DSQL mode."
   value       = module.slash_m3_core.incident_table_name
+}
+
+output "dsql_bootstrap" {
+  description = "Non-secret config for backend/scripts/bootstrap_dsql.py; export with terraform output -json dsql_bootstrap."
+  value       = module.slash_m3_core.dsql_bootstrap
+}
+
+output "dsql_cluster_endpoint" {
+  description = "Dedicated LambdaOps DSQL endpoint."
+  value       = module.slash_m3_core.dsql_cluster_endpoint
+}
+
+output "ingest_lambda_name" {
+  value = module.slash_m3_core.ingest_lambda_name
+}
+
+output "read_lambda_name" {
+  value = module.slash_m3_core.read_lambda_name
+}
+
+output "ingestion_active" {
+  description = "True only after storage readiness and real M2 Alarm wiring are enabled."
+  value       = module.slash_m3_core.ingestion_active
+}
+
+output "http_api_active" {
+  description = "True only after storage readiness and an existing JWT issuer are configured."
+  value       = module.slash_m3_core.http_api_active
 }
 
 output "ingest_queue_url" {

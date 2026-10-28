@@ -9,11 +9,13 @@ bounded whole-transaction retries. The list API supports page numbers, filters,
 literal substring search, sorting and exact totals in one snapshot.
 See the [API contract](../docs/contracts/incident-api.md).
 
-`INCIDENT_STORE=dsql` selects this adapter in both Lambda handlers. The default
-remains `dynamodb` while Terraform and the frontend use the legacy cursor API.
-This compatibility mode does not change the DSQL decision. No automatic data
-migration is provided. Actual DSQL IAM, distributed OCC, ASYNC indexes, execution
-plans, costs and Lambda/JWT integration remain unverified.
+Terraform now defaults to DSQL and explicitly sets `INCIDENT_STORE=dsql` in
+both Lambda handlers. A dedicated dev cluster, runtime roles and two Lambdas
+have been provisioned. The Python factory still accepts legacy `dynamodb`
+configuration; it is not the current dev deployment. The frontend still uses
+the cursor contract and needs a separate update. No automatic data migration
+is provided. See the [AWS verification record](../docs/testing/m2-m3-verification.md)
+for completed checks and the remaining event, JWT, concurrency and cost tests.
 
 ## DSQL connection settings
 
@@ -30,9 +32,11 @@ The connection factory signs a fresh DbConnect token using the Lambda IAM
 credentials for each connection, verifies TLS hostname/certificate and opens a
 short REPEATABLE READ transaction. Reads also use READ ONLY. Each context commits
 or rolls back and closes; this initial implementation does not pool connections.
-Tokens are not stored in settings or logged. Mapping custom DB roles to IAM roles
-and granting SQL privileges are infrastructure tasks; current Terraform does not
-configure them. [IAM authentication](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_authentication-token.html),
+Tokens are not stored in settings or logged. Terraform grants each Lambda
+`dsql:DbConnect` only for the dedicated cluster. The separate
+[DB bootstrap tool](scripts/dsql-bootstrap.md) creates tables, custom DB roles,
+SQL privileges and exact IAM role mappings without putting admin tokens in state.
+[IAM authentication](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_authentication-token.html),
 [supported BEGIN options](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-postgresql-compatibility-supported-sql-features.html),
 [concurrency and SQLSTATE 40001](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-concurrency-control.html).
 
@@ -116,7 +120,8 @@ module consumes the resulting path; it does not run a package builder.
 Use the [Docker-based ZIP builder](scripts/README.md) to build and smoke-test
 that deployment package.
 
-The M2 alarms have not been deployed or replayed in AWS. Local fixture tests
-and Terraform formatting therefore verify code shape and behavior only;
-CloudWatch delivery, queue retries, JWT issuer integration, and DynamoDB
-transactions still need AWS environment verification.
+The M2 alarms have not been deployed or replayed in AWS. The dev SQS consumer
+remains disabled and no HTTP API is exposed until real M2 outputs and an existing
+JWT issuer are configured. CloudWatch delivery, queue retries and real JWT
+integration still need AWS environment verification. Follow the
+[staged dev deployment guide](../infra/environments/dev/README.md).

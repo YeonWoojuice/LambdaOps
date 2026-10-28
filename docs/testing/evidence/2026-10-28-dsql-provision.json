@@ -1,0 +1,174 @@
+{
+  "recorded_at": "2026-10-28T06:27:34.453285+00:00",
+  "base_commit": "6d4034cadacf7536037c115a180af7ac50dc390d",
+  "changes_pushed": false,
+  "target": {
+    "account_id": "642935793048",
+    "cluster_arn": "arn:aws:dsql:ap-northeast-2:642935793048:cluster/krugaq2rx2w52ku2bbp7e6piw4",
+    "cluster_id": "krugaq2rx2w52ku2bbp7e6piw4",
+    "endpoint": "krugaq2rx2w52ku2bbp7e6piw4.dsql.ap-northeast-2.on.aws",
+    "ingest_db_role": "lambdaops_ingest",
+    "ingest_iam_role_arn": "arn:aws:iam::642935793048:role/lambdaops-dev-slash-api-de2b25b5-ingest-role",
+    "read_db_role": "lambdaops_read",
+    "read_iam_role_arn": "arn:aws:iam::642935793048:role/lambdaops-dev-slash-api-de2b25b5-read-role",
+    "region": "ap-northeast-2"
+  },
+  "terraform": {
+    "created": 14,
+    "modified": 0,
+    "destroyed": 0,
+    "final_plan_exit_code": 0,
+    "dsql_schema_ready": true,
+    "connect_m2_alarms": false,
+    "enable_http_api": false
+  },
+  "schema_and_roles": {
+    "command": "verify",
+    "result": {
+      "columns": 32,
+      "constraints": 35,
+      "iam_mappings": 2,
+      "indexes": 10,
+      "privileges": "matched",
+      "runtime_roles": 2,
+      "tables": 3
+    },
+    "runtime_lambda_connection_verified": false
+  },
+  "async_index_jobs_completed": 4,
+  "iam_policy_simulation": [
+    {
+      "role": "ingest",
+      "target": "LambdaOps",
+      "action": "dsql:DbConnect",
+      "decision": "allowed"
+    },
+    {
+      "role": "ingest",
+      "target": "LambdaOps",
+      "action": "dsql:DbConnectAdmin",
+      "decision": "implicitDeny"
+    },
+    {
+      "role": "ingest",
+      "target": "other-cluster",
+      "action": "dsql:DbConnect",
+      "decision": "implicitDeny"
+    },
+    {
+      "role": "ingest",
+      "target": "other-cluster",
+      "action": "dsql:DbConnectAdmin",
+      "decision": "implicitDeny"
+    },
+    {
+      "role": "read",
+      "target": "LambdaOps",
+      "action": "dsql:DbConnect",
+      "decision": "allowed"
+    },
+    {
+      "role": "read",
+      "target": "LambdaOps",
+      "action": "dsql:DbConnectAdmin",
+      "decision": "implicitDeny"
+    },
+    {
+      "role": "read",
+      "target": "other-cluster",
+      "action": "dsql:DbConnect",
+      "decision": "implicitDeny"
+    },
+    {
+      "role": "read",
+      "target": "other-cluster",
+      "action": "dsql:DbConnectAdmin",
+      "decision": "implicitDeny"
+    }
+  ],
+  "read_lambda": {
+    "name": "lambdaops-dev-slash-api-de2b25b5-read",
+    "warning": "Synthetic authorizer context in a direct IAM-authorized Lambda invoke; this is NOT JWT or API Gateway verification.",
+    "results": [
+      {
+        "case": "missing-context",
+        "expected": 401,
+        "actual": 401,
+        "passed": true,
+        "functionError": null
+      },
+      {
+        "case": "missing-scope",
+        "expected": 403,
+        "actual": 403,
+        "passed": true,
+        "functionError": null
+      },
+      {
+        "case": "empty-list",
+        "expected": 200,
+        "actual": 200,
+        "passed": true,
+        "functionError": null,
+        "body": {
+          "items": [],
+          "page": 1,
+          "pageSize": 50,
+          "totalItems": 0,
+          "totalPages": 0,
+          "hasNextPage": false
+        }
+      },
+      {
+        "case": "filtered-list",
+        "expected": 200,
+        "actual": 200,
+        "passed": true,
+        "functionError": null,
+        "body": {
+          "items": [],
+          "page": 1,
+          "pageSize": 10,
+          "totalItems": 0,
+          "totalPages": 0,
+          "hasNextPage": false
+        }
+      },
+      {
+        "case": "legacy-parameters-rejected",
+        "expected": 400,
+        "actual": 400,
+        "passed": true,
+        "functionError": null
+      },
+      {
+        "case": "missing-detail",
+        "expected": 404,
+        "actual": 404,
+        "passed": true,
+        "functionError": null
+      }
+    ]
+  },
+  "ingest_lambda": {
+    "name": "lambdaops-dev-slash-api-de2b25b5-ingest",
+    "configured": true,
+    "event_write_verified": false,
+    "sqs_mapping_state": "Disabled"
+  },
+  "artifact_sha256": "150734683949ac6fe946e88b507b6d8abe062d4a090788e7c6b7d509a2aea0f8",
+  "unit_tests": {
+    "python_3_12_linux": 111,
+    "python_3_13_macos": 111,
+    "bootstrap_included": 20
+  },
+  "not_verified": [
+    "M2 alarm transitions",
+    "EventBridge/SQS delivery and DLQ retries",
+    "ingest Lambda write",
+    "real JWT/API Gateway authentication",
+    "nonempty detail HTTP 200",
+    "distributed concurrency",
+    "query cost and performance"
+  ]
+}

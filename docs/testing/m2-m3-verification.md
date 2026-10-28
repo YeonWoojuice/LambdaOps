@@ -1,13 +1,36 @@
 # M2·M3 검증 기준과 증거 기록
 
-이 문서는 **검증할 기준과 확인한 결과**를 구분해 기록합니다. 기존 [GitHub CI 기록](https://github.com/YeonWoojuice/LambdaOps/actions/runs/38544496325)에서 Backend 자동 테스트와 Terraform 형식·구성 검사 통과를 확인했습니다. 이번 SQL 작업에서 실행한 로컬 검사는 아래 절에 별도로 기록합니다. 기존 [README](../../README.md)는 2026-10-14 당시 M2·M3 미배포를 기록하며, **이번 작업에서 AWS 자원 상태를 직접 조회하거나 변경하지 않았습니다.**
+이 문서는 **검증할 기준과 확인한 결과**를 구분해 기록합니다. 기존 [GitHub CI 기록](https://github.com/YeonWoojuice/LambdaOps/actions/runs/38544496325)과 아래 로컬 SQL 검증 이후, **2026-10-28에는 dev AWS에 DSQL·Lambda 기반 자원을 실제 생성하고 DB 권한·조회 Lambda 연결을 확인했습니다.** 과거 기록의 미배포 상태와 현재 결과를 구분하며 전체 M3 완료를 뜻하지 않습니다.
 
 | 검증 단계 | 지금 있는 근거 | 아직 필요한 증거 |
 | --- | --- | --- |
 | M1 Slash 지표 | [M1 기록](https://app.notion.com/p/3ea91c6807b1819786b6e515e3a2a6f7)의 로컬 실측 | 실제 AWS 시험 환경과 동일한 계정·리전·서비스·환경의 지표 발행 확인 |
 | M2 코드 | [Alarm 3종](../../infra/modules/m2-alarms/main.tf), CI의 Terraform 검사 | 선택한 임계값·최소 건수의 근거, 검토된 적용 계획, 실제 자원과 `ALARM→OK` 이력 |
-| M3 로컬 코드 | [단위 테스트](../../backend/tests/), [로컬 SQL 통합 테스트](../../backend/tests_dsql/)로 DSQL 저장·조회·동시 수신 확인 | 실제 DSQL의 분산 충돌·권한·성능과 원격 CI 결과 |
-| M3 AWS 전체 흐름 | [수집·조회 Terraform](../../infra/modules/m3-core/main.tf)과 [Backend](../../backend/lambdaops_m3/)의 정의 | 실제 전달·저장·실패 큐·JWT 조회·DSQL 연결을 보여 주는 결과 |
+| M3 로컬 코드 | 기존 저장·조회 검증과 초기화 도구 포함 단위 테스트 111개 통과 | 실제 DSQL 분산 충돌·성능과 이번 변경의 원격 CI 결과 |
+| M3 AWS 기반 | Terraform 자원 14개 생성, 실제 DSQL 스키마·권한, 조회 Lambda 직접 호출 확인 | 수집 Lambda의 실제 쓰기, EventBridge·SQS 전달·실패 큐, 실제 JWT·HTTP 조회 |
+
+## 2026-10-28 DSQL·권한·Lambda 실제 AWS 구성
+
+대상은 계정 `642935793048`, 서울 리전 `ap-northeast-2`, `slash-api`/`dev`다. 기준 커밋은 `6d4034c`이며 이번 Terraform·초기화 도구·문서 변경은 로컬 작업으로 원격 반영 전이다. 이미 다른 프로젝트에서 사용하던 DSQL은 변경하지 않고 LambdaOps 전용 클러스터 `krugaq2rx2w52ku2bbp7e6piw4`를 생성했다.
+
+| 검사 | 실제 결과 | 해석 |
+| --- | --- | --- |
+| Terraform 적용 | 14개 생성, 기존 자원 변경·삭제 0개 | DSQL 1, Lambda 2, IAM 역할 2·정책 2, SQS 3, 로그 그룹 2, SQS 소비 연결 1, DLQ 허용 정책 1 |
+| DB 생성·설치 확인 | 테이블 3·컬럼 32·명명 제약 35·인덱스 10개 일치 | 001~007 승인 SQL 적용. ASYNC 작업 4개 모두 completed, PK·FK·CHECK·인덱스 카탈로그 비교 통과 |
+| SQL 권한 | 역할 2·IAM 매핑 2 일치, 유효 권한 검사 통과 | 수집은 alarms/incidents SELECT·INSERT·UPDATE, alarm_events SELECT·INSERT. 조회는 세 테이블 SELECT만 허용. CREATE·DELETE·권한 재위임·상속 역할 없음 |
+| IAM 정책 시뮬레이션 | 두 역할 × 대상/다른 클러스터 × 일반/관리자 접속 총 8개 기대 결과 일치 | 전용 클러스터 DbConnect만 allowed. DbConnectAdmin과 다른 클러스터는 implicitDeny. 시뮬레이션을 실제 접속 증거와 구분 |
+| 조회 Lambda 직접 호출 | 6개 기대 응답 일치 | 기본·필터 목록 200 및 items=[]/totalItems=0, 미존재 상세 404, 기존 limit 거부 400, 인증 문맥 없음 401·scope 없음 403 |
+| 배포 파일 | 두 Lambda Active/Successful, ZIP 해시 일치 | 아래 SHA-256의 Python 3.12 Linux x86_64 패키지로 실제 DB 조회 성공 |
+| 재계획 | 자원 변경 0개, 최종 plan 종료 코드 0 | 준비 상태 반영 후 설정과 배포 상태 일치 |
+| 최종 자동 테스트 | Python 3.12 Linux와 로컬 Python 3.13에서 각각 111개 통과 | 기존 91개 + 초기화 도구 20개. Terraform fmt·validate·diff 검사 통과. provider 6.x의 기존 호환 문법 deprecation 경고는 남음 |
+
+조회 Lambda는 `lambdaops-dev-slash-api-de2b25b5-read`, 수집 Lambda는 `lambdaops-dev-slash-api-de2b25b5-ingest`다. 패키지 SHA-256은 `150734683949ac6fe946e88b507b6d8abe062d4a090788e7c6b7d509a2aea0f8`이다. [정리한 검증 결과](evidence/2026-10-28-dsql-provision.json)에는 비밀값 없는 대상·검사 결과만 보관한다.
+
+실제 적용 중 두 차이를 확인했다. DSQL은 PK 제약과 인덱스에 비키 컬럼 INCLUDE를 자동 표시하므로 검사기가 전체 비키 컬럼과 정확히 일치하는 경우만 인정하도록 수정했다. 또한 DSQL이 관리하는 public 스키마의 CREATE 권한 변경은 거부되며, 사용자 역할은 이미 USAGE 허용·CREATE 금지 상태였다. 지원하지 않는 스키마 변경문을 제거하고 유효 권한을 검사하도록 수정했다. 부분 생성된 두 역할을 확인한 뒤 남은 테이블 권한·IAM 매핑만 적용했으며 테이블을 재생성하지 않았다. 이 동작은 [DSQL 고려사항](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/considerations.html)과 [역할 연결 문서](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/using-database-and-iam-roles.html)를 참고했다.
+
+최종 설정은 `dsql_schema_ready=true`, `connect_m2_alarms=false`, `enable_http_api=false`다. M2 상태 파일·대상 Alarm이 없어서 가짜 ARN을 넣지 않았으며 SQS 소비 연결은 Disabled다. 수집 Lambda의 환경변수·IAM/DB 권한은 구성했지만 실제 이벤트를 통한 쓰기는 아직 실행하지 않았다. 공개 HTTP API도 생성하지 않았다.
+
+**직접 호출에는 시험용 authorizer 문맥을 넣었다. 실제 JWT의 서명·발급자·audience 검증이나 API Gateway 통과 결과가 아니다.** 빈 DB의 연결·조회만 확인했으므로 데이터가 있는 상세의 200 응답, 이벤트 재생, 실패 큐, 분산 동시성, 성능·비용은 다음 검증 대상이다. M2와 M3는 In Progress를 유지한다.
 
 ## 2026-10-28 DSQL 생성 SQL의 로컬 검증
 
@@ -46,7 +69,7 @@
 
 ## M3를 완료로 판단할 기준
 
-[기존 M3 종료 기준](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)은 **`ALARM→Incident 1건 생성, 중복·OK·실패 처리, 인증된 Detail 조회 검증`**입니다. 승인된 DSQL 스키마와 저장·조회 어댑터는 로컬 검증했지만 기본 설정·Terraform은 DynamoDB입니다. 실제 자원·권한·Lambda·프런트 전환과 환경 검증이 남아 있습니다. Terraform 상태 잠금용 DynamoDB는 별개입니다.
+[기존 M3 종료 기준](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)은 **`ALARM→Incident 1건 생성, 중복·OK·실패 처리, 인증된 Detail 조회 검증`**입니다. DSQL 기반 자원·권한·조회 Lambda 연결은 확인했으며, 실제 M2 이벤트·수집 Lambda 쓰기·JWT·프런트 연결과 전체 흐름 검증이 남아 있습니다. Terraform 상태 잠금용 DynamoDB는 별개입니다.
 
 실제 환경에서는 다음 결과를 남겨야 합니다.
 
