@@ -79,6 +79,8 @@
 
 실제 Slash 지표의 60초 발행, namespace `LambdaOps/Slash`, `Service`·`Environment`, 단위와 합계 값이 [M2 모듈 계약](../../infra/modules/m2-alarms/README.md)에 맞는지 확인합니다. 실측 트래픽으로 5xx 비율·API 평균 지연·DB 쿼리 평균 지연의 임계값과 최소 요청/쿼리 수를 정합니다. 검토된 Terraform 계획을 적용한 뒤 **Alarm 3개가 실제로 존재**하고, 제한된 시험에서 각각 `ALARM`과 후속 `OK`가 발생하는지 확인합니다. 지표 발행 확인이나 Terraform `validate`만으로는 이 기준을 충족하지 않습니다. 상세 적용 순서는 [dev 배포 안내](../../infra/environments/dev/README.md)를 따릅니다.
 
+시험 전 이미지 보안 검토·예산·시험자 IP·종료 시각을 [기존 Slash 준비·종료 절차](https://github.com/YeonWoojuice/slash-personal/blob/main/infra/personal/README.md)에 따라 확인하고, 시험 후 결과 보존과 experiment 전체 삭제·잔여 자원 확인까지 검증합니다.
+
 ## M3를 완료로 판단할 기준
 
 [기존 M3 종료 기준](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)은 **`ALARM→Incident 1건 생성, 중복·OK·실패 처리, 인증된 Detail 조회 검증`**입니다. DSQL 기반 자원·권한·조회 Lambda 연결은 확인했으며, 실제 M2 이벤트·수집 Lambda 쓰기·기존 Incident 상세 200·프런트 연결과 전체 흐름 검증이 남아 있습니다. 실제 Cognito JWT의 빈 목록·401·403 검증은 아래 후속 결과를 따릅니다. Terraform 상태 잠금용 DynamoDB는 별개입니다.
