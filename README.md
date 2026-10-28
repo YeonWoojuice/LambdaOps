@@ -17,7 +17,7 @@ flowchart LR
     Read --> DB
 ```
 
-이 그림은 M3의 연결 구조입니다. Terraform의 기본 저장소는 DSQL이며, 2026-10-28 dev 계정 `642935793048`의 서울 리전에 전용 클러스터·Lambda 2개·큐·권한을 생성했습니다. M2 Alarm 연결과 HTTP API는 아직 비활성입니다. 실제 적용·연결 확인 결과는 [환경 검증 기록](docs/testing/m2-m3-verification.md), 전체 목표는 [아키텍처](docs/architecture/overview.md)를 따릅니다.
+이 그림은 M3의 연결 구조입니다. Terraform의 기본 저장소는 DSQL이며, 2026-10-28 dev 계정 `642935793048`의 서울 리전에 전용 클러스터·Lambda 2개·큐·권한을 생성했습니다. 후속 단계에서 Cognito 보호 HTTP API를 활성화하고 실제 로그인으로 DSQL 빈 목록 200·무토큰 401·권한 없음 403을 확인했습니다. M2 Alarm 연결과 SQS 소비는 아직 비활성입니다. 실제 적용·연결 확인 결과는 [환경 검증 기록](docs/testing/m2-m3-verification.md), 전체 목표는 [아키텍처](docs/architecture/overview.md)를 따릅니다.
 
 ## 현재 진행 상태
 
@@ -25,8 +25,8 @@ flowchart LR
 | --- | --- | --- |
 | Terraform 상태 저장소 | 암호화·버전 관리 S3와 DynamoDB 잠금 설정 | dev 계정에 생성, 원격 상태 이전 완료 |
 | M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 대상 Alarm·M2 상태 파일 없음 확인. 실제 AWS 지표·임계값·Alarm 전이 미검증 |
-| M3 Incident Core | DSQL 저장·조회, 고정 ID·검색·필터·번호 페이지·건수 구현 | 전용 DSQL·Lambda 2개·큐·권한 생성. EventBridge 미연결·SQS 소비 비활성·HTTP API 미생성 |
-| 로그인 | 기존 JWT 연결점과 Cognito operator client·읽기 scope 구성 | Slash 개인 foundation의 Cognito 생성·로그인 페이지 확인. 사용자 등록·실제 JWT·HTTP 조회는 다음 단계 |
+| M3 Incident Core | DSQL 저장·조회, 고정 ID·검색·필터·번호 페이지·건수 구현 | 전용 DSQL·Lambda 2개·큐·권한과 JWT 보호 HTTP API 생성. 빈 목록 조회 검증, EventBridge 미연결·SQS 소비 비활성 |
+| 로그인 | 기존 JWT 연결점과 Cognito operator client·읽기 scope 구성 | 시험 사용자 로그인·실제 JWT 발급, 목록 200·무토큰 401·권한 없음 403 확인. 실제 Incident 상세 200은 미검증 |
 | 화면 | 승인된 Cloudscape 그래프 시안과 React·TypeScript 프런트 코드가 있습니다. 화면은 예시 Incident·지표로 동작합니다. | 프런트 배포 없음. 실제 JWT·CORS·CloudWatch 시계열 조회 연결 전 |
 
 AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 합니다. 인프라 생성, DB 연결, 실제 이벤트·JWT 검증을 구분하며 M3는 In Progress입니다.
@@ -42,7 +42,7 @@ AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 �
 | AI 에이전트 | Bedrock · Strands · AgentCore | 최종 목표로 선택; M3 범위 밖이며 현재 코드·배포 없음 |
 | 이벤트 처리 | EventBridge · SQS · Lambda | 큐·Lambda 배포, 실제 M2 Alarm 연결과 이벤트 전체 경로 검증은 남아 있음 |
 | Incident 저장 | Aurora DSQL | **2026-10-28 채택 확정**; 저장·조회 구현 및 전용 클러스터 생성. Terraform은 DSQL 기본 설정 |
-| 인프라 | Terraform | 상태 저장소와 M3 1차 기반 자원 적용. M2·공개 조회 API는 준비 조건 충족 후 연결 |
+| 인프라 | Terraform | 상태 저장소·M3 기반 자원·Cognito 보호 조회 API 적용. M2 연결은 실제 Alarm 준비 후 진행 |
 | 외부 도구 연결 | MCP | 최종 목표의 읽기·승인 후 복구 도구; M3 범위 밖이며 구현 전 |
 
 ### Incident DB 결정 — 2026-10-28
@@ -101,10 +101,10 @@ Slash 시험 대상의 기존 Fargate 구성과 EC2 대안, 서울 리전 예상
 
 M3 기반 자원과 실제 이벤트·사용자 조회 연결을 단계별로 검증합니다. M2를 기다리는 동안에도 DSQL·Lambda 연결과 fixture를 검증할 수 있습니다. 프런트 예시 화면의 빌드 성공은 AWS·인증·실측 지표 연결을 뜻하지 않습니다. 검증 항목과 증거 기준은 [M2·M3 검증 계획](docs/testing/m2-m3-verification.md)에 정리합니다.
 
-1. Slash API·DB의 AWS 시험 실행 방식을 정하고 `LambdaOps/Slash` 지표 5종이 60초마다 발행되는지 확인합니다.
+1. Slash API·DB의 AWS 시험 실행 방식을 정하고 `LambdaOps/Slash` 집계 지표 5종과 진단 Gauge 1종이 60초마다 발행되는지 확인합니다.
 2. 실제 지표와 트래픽으로 M2의 임계값·최소 요청 수를 정한 뒤 Alarm 3개를 적용하고 `ALARM → OK`를 확인합니다.
-3. 생성한 개인 Cognito pool에 시험 사용자를 등록하고, 기존 operator client에서 실제 읽기 권한 토큰을 준비합니다.
-4. 준비된 M2 출력과 JWT를 Terraform에 연결한 뒤 fixture 재생으로 중복·역순·실패·OK 처리, 인증된 상세 조회와 실제 장애 전체 경로를 검증합니다. 프런트 조회 계약도 함께 전환합니다.
+3. 준비된 M2 출력을 Terraform에 연결한 뒤 fixture 재생으로 중복·역순·실패·OK 처리와 실제 장애 전체 경로를 검증합니다.
+4. 검증된 Cognito 로그인·조회 API로 실제 Incident 상세 200을 확인하고, 프런트의 조회 계약과 인증 연결을 전환합니다.
 
 M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 프런트 코드는 별도 예시 화면 단계이며 M3 Core의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
 

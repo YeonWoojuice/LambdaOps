@@ -1,0 +1,115 @@
+{
+  "at": "2026-10-28T10:17:06.153096+00:00",
+  "api_endpoint": "https://3propt9l3g.execute-api.ap-northeast-2.amazonaws.com",
+  "http_api_active": true,
+  "ingestion_active": false,
+  "m2_connected": false,
+  "post_apply_plan_changes": 0,
+  "routes": [
+    {
+      "route": "GET /incidents/{incidentId}",
+      "authorization": "JWT",
+      "scopes": [
+        "lambdaops/incidents.read"
+      ]
+    },
+    {
+      "route": "GET /incidents",
+      "authorization": "JWT",
+      "scopes": [
+        "lambdaops/incidents.read"
+      ]
+    }
+  ],
+  "user_status": "CONFIRMED",
+  "email_verified": false,
+  "probe": {
+    "at": "2026-10-28T10:17:04.681573+00:00",
+    "checks": [
+      {
+        "route": "list",
+        "case": "read_scope",
+        "expected_status": 200,
+        "actual_status": 200,
+        "passed": true
+      },
+      {
+        "route": "list",
+        "case": "missing_token",
+        "expected_status": 401,
+        "actual_status": 401,
+        "passed": true
+      },
+      {
+        "route": "list",
+        "case": "no_read_scope",
+        "expected_status": 403,
+        "actual_status": 403,
+        "passed": true
+      }
+    ],
+    "all_passed": true,
+    "detail_checked": false,
+    "list_summary": {
+      "page": 1,
+      "pageSize": 50,
+      "totalItems": 0,
+      "totalPages": 0,
+      "hasNextPage": false
+    }
+  },
+  "additional_checks": [
+    {
+      "route": "list",
+      "case": "invalid_token",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "route": "list",
+      "case": "missing_token",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "route": "detail",
+      "case": "invalid_token",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "route": "detail",
+      "case": "missing_token",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "route": "nonexistent_detail",
+      "case": "read_scope",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "route": "nonexistent_detail",
+      "case": "no_read_scope",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    }
+  ],
+  "all_passed": true,
+  "existing_incident_detail_200_verified": false,
+  "account_id": "642935793048",
+  "region": "ap-northeast-2",
+  "terraform_apply": {
+    "created": 8,
+    "updated": 1,
+    "deleted": 0,
+    "read_lambda_change": "REQUIRED_READ_SCOPE only; code hash and DSQL settings unchanged"
+  }
+}

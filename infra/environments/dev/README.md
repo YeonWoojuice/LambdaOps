@@ -8,11 +8,14 @@ dedicated DSQL cluster `krugaq2rx2w52ku2bbp7e6piw4`, runtime IAM roles, queues a
 two Lambdas. The approved schema and separate SQL roles/IAM mappings now pass
 live verification. The read Lambda passes six direct-invocation checks, including
 empty list/filter queries against DSQL. `dsql_schema_ready=true` records DB
-readiness; `connect_m2_alarms=false` and `enable_http_api=false` remain unchanged.
-There is no M2 state or deployed M2 Alarm, no EventBridge rule or public HTTP API,
-and SQS processing is disabled. The ingest Lambda is configured but has not
-written through an actual Alarm event. Synthetic authorizer context in a direct
-Lambda invocation does not verify real JWT authentication. See the
+readiness. A subsequent apply enabled the Cognito-protected HTTP API: eight
+resources created, one read-Lambda scope setting updated, none deleted.
+`enable_http_api=true`; real code+PKCE tokens now pass empty-list 200, missing-token
+401 and missing-read-scope 403 checks. `connect_m2_alarms=false` remains unchanged:
+there is no M2 state, deployed M2 Alarm or EventBridge rule, and SQS processing
+is disabled. Actual ingestion and an existing Incident detail 200 remain
+unverified. The follow-up plan reports no changes. Pass `-var-file=dev.tfvars`
+explicitly for this root; that filename is not auto-loaded by Terraform. See the
 [dated evidence](../../../docs/testing/m2-m3-verification.md).
 
 The bootstrap DynamoDB state lock table serves Terraform state coordination; it

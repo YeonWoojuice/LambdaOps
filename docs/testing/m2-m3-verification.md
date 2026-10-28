@@ -7,7 +7,7 @@
 | M1 Slash 지표 | [M1 기록](https://app.notion.com/p/3ea91c6807b1819786b6e515e3a2a6f7)의 로컬 실측 | 실제 AWS 시험 환경과 동일한 계정·리전·서비스·환경의 지표 발행 확인 |
 | M2 코드 | [Alarm 3종](../../infra/modules/m2-alarms/main.tf), CI의 Terraform 검사 | 선택한 임계값·최소 건수의 근거, 검토된 적용 계획, 실제 자원과 `ALARM→OK` 이력 |
 | M3 로컬 코드 | 기존 저장·조회 검증과 초기화 도구 포함 단위 테스트 111개 통과 | 실제 DSQL 분산 충돌·성능과 이번 변경의 원격 CI 결과 |
-| M3 AWS 기반 | Terraform 자원 14개 생성, 실제 DSQL 스키마·권한, 조회 Lambda 직접 호출 확인 | 수집 Lambda의 실제 쓰기, EventBridge·SQS 전달·실패 큐, 실제 JWT·HTTP 조회 |
+| M3 AWS 기반 | 기반 자원 14개와 후속 JWT 보호 HTTP API 생성, 실제 DSQL·권한·로그인·빈 목록 200·401·403 확인 | 수집 Lambda의 실제 쓰기, EventBridge·SQS 전달·실패 큐, 실제 Incident 상세 200 |
 
 ## 2026-10-28 DSQL·권한·Lambda 실제 AWS 구성
 
@@ -28,7 +28,7 @@
 
 실제 적용 중 두 차이를 확인했다. DSQL은 PK 제약과 인덱스에 비키 컬럼 INCLUDE를 자동 표시하므로 검사기가 전체 비키 컬럼과 정확히 일치하는 경우만 인정하도록 수정했다. 또한 DSQL이 관리하는 public 스키마의 CREATE 권한 변경은 거부되며, 사용자 역할은 이미 USAGE 허용·CREATE 금지 상태였다. 지원하지 않는 스키마 변경문을 제거하고 유효 권한을 검사하도록 수정했다. 부분 생성된 두 역할을 확인한 뒤 남은 테이블 권한·IAM 매핑만 적용했으며 테이블을 재생성하지 않았다. 이 동작은 [DSQL 고려사항](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/considerations.html)과 [역할 연결 문서](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/using-database-and-iam-roles.html)를 참고했다.
 
-최종 설정은 `dsql_schema_ready=true`, `connect_m2_alarms=false`, `enable_http_api=false`다. M2 상태 파일·대상 Alarm이 없어서 가짜 ARN을 넣지 않았으며 SQS 소비 연결은 Disabled다. 수집 Lambda의 환경변수·IAM/DB 권한은 구성했지만 실제 이벤트를 통한 쓰기는 아직 실행하지 않았다. 공개 HTTP API도 생성하지 않았다.
+이 1차 적용 당시 설정은 `dsql_schema_ready=true`, `connect_m2_alarms=false`, `enable_http_api=false`였다. 후속 HTTP API 활성화 결과는 문서 끝에 기록한다. M2 상태 파일·대상 Alarm이 없어서 가짜 ARN을 넣지 않았으며 SQS 소비 연결은 Disabled다. 수집 Lambda의 환경변수·IAM/DB 권한은 구성했지만 실제 이벤트를 통한 쓰기는 아직 실행하지 않았다. 공개 HTTP API도 생성하지 않았다.
 
 ### GitHub 게시·CI 확인
 
@@ -81,7 +81,7 @@
 
 ## M3를 완료로 판단할 기준
 
-[기존 M3 종료 기준](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)은 **`ALARM→Incident 1건 생성, 중복·OK·실패 처리, 인증된 Detail 조회 검증`**입니다. DSQL 기반 자원·권한·조회 Lambda 연결은 확인했으며, 실제 M2 이벤트·수집 Lambda 쓰기·JWT·프런트 연결과 전체 흐름 검증이 남아 있습니다. Terraform 상태 잠금용 DynamoDB는 별개입니다.
+[기존 M3 종료 기준](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)은 **`ALARM→Incident 1건 생성, 중복·OK·실패 처리, 인증된 Detail 조회 검증`**입니다. DSQL 기반 자원·권한·조회 Lambda 연결은 확인했으며, 실제 M2 이벤트·수집 Lambda 쓰기·기존 Incident 상세 200·프런트 연결과 전체 흐름 검증이 남아 있습니다. 실제 Cognito JWT의 빈 목록·401·403 검증은 아래 후속 결과를 따릅니다. Terraform 상태 잠금용 DynamoDB는 별개입니다.
 
 실제 환경에서는 다음 결과를 남겨야 합니다.
 
@@ -104,7 +104,7 @@ Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후
 
 이 준비는 실제 JWT 검증 완료가 아니다. 로컬 fixture는 서명을 검증하지 않으며, 실제 Cognito·HTTP API가 생성된 뒤 그 발급자·audience·scope와 API Gateway 서명 검증을 통과한 기존 Incident의 상세 200을 남겨야 한다. 모든 초대 사용자가 operator client의 허용 scope를 요청할 수 있는 현재 개인 pool 범위이며, 별도 client를 사용자별 관리자 권한 경계로 간주하지 않는다. 다중 사용자·테넌트별 소유권 설계는 변경하지 않았다.
 
-### 후속 검증: Cognito·ECR foundation 생성 완료
+### 1단계 기록: Cognito·ECR foundation 생성 완료
 
 2026-10-28 계정 `642935793048`·서울 리전에 Slash 개인 foundation을 실제 적용했다. ECR 저장소 6개·보관 정책 6개, Cognito pool·client 2개·resource server·domain으로 총 17개를 생성했으며 기존 자원 변경·삭제는 0개다. 적용 후 재계획도 변경 0개다. 이 작업은 LambdaOps의 DSQL·Lambda 재배포나 HTTP API 활성화를 포함하지 않는다.
 
@@ -116,4 +116,21 @@ Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후
 | 사용자·이미지 | 사용자 0명, ECR 저장소 6개 모두 이미지 0개 |
 | 읽기 권한 연결값 | 실제 issuer·operator client ID·`lambdaops/incidents.read` 출력 확보 |
 
-[Slash 생성·검증 근거](https://github.com/YeonWoojuice/slash-personal/blob/main/docs/observability/results/2026-10-28-foundation-provision.json)에 비밀값 없는 결과를 기록했다. state와 실제 tfvars는 개인 로컬 경로에 권한을 제한하고 Git에서 제외했다. 사용자 로그인·토큰 발급·인증된 Detail 조회는 아직 검증하지 않았으며, 다음 단계에서 시험 사용자·실제 토큰·M3 HTTP API를 연결한다.
+[Slash 생성·검증 근거](https://github.com/YeonWoojuice/slash-personal/blob/main/docs/observability/results/2026-10-28-foundation-provision.json)에 비밀값 없는 결과를 기록했다. state와 실제 tfvars는 개인 로컬 경로에 권한을 제한하고 Git에서 제외했다. 이 1단계 당시에는 사용자 로그인·토큰 발급·인증된 Detail 조회를 검증하지 않았다. 이어서 수행한 실제 로그인·HTTP API 결과는 다음 절을 따른다.
+
+
+## 2026-10-28 실제 Cognito 로그인·HTTP 조회 검증
+
+시험 사용자가 Cognito 화면에서 임시 비밀번호를 변경하고 code+PKCE 로그인을 완료했다. 비밀번호는 도구로 받지 않았으며 액세스 토큰은 Git 밖의 개인 파일로만 취급했다. 사용자 상태는 `CONFIRMED`지만 `email_verified=false`이므로 로그인 성공과 이메일 속성 검증은 구분한다. 이메일 소유권을 관리자가 임의로 확인 처리하지 않았다.
+
+| 항목 | 실제 결과 | 의미 |
+| --- | --- | --- |
+| Terraform 적용 | 생성 8·변경 1·삭제 0 | HTTP API·JWT authorizer·통합·목록/상세 경로·stage·호출 권한 생성. read Lambda의 읽기 scope만 변경하고 배포 ZIP·DSQL 설정은 유지 |
+| 후속 계획 | 변경 0 | 실제 상태와 명시한 `dev.tfvars` 일치 |
+| 실제 로그인 + 읽기 scope | 목록 200, `items=[]`, `totalItems=0` | Cognito → API Gateway 서명·scope 검증 → 조회 Lambda → DSQL 연결 확인 |
+| 토큰 없음·잘못된 토큰 | 목록·상세 각각 401 | 인증되지 않은 호출 차단 |
+| 같은 client의 openid 전용 토큰 | 목록·상세 각각 403 | 유효한 로그인과 Incident 읽기 권한을 구분 |
+| 읽기 scope + 없는 Incident ID | 404 | 상세 경로의 인증 및 미존재 처리 확인. 실제 기록의 상세 200을 대신하지 않음 |
+| 수집 경로 | M2 미연결, SQS 소비 비활성 | 시험 데이터 생성·장애 실행·수집 Lambda 쓰기는 하지 않음 |
+
+[개인정보를 제외한 환경 검증 결과](evidence/2026-10-28-cognito-http-verification.json)에 9개 HTTP 검사와 적용 범위를 기록했다. 무토큰 목록 검사는 기본 도구와 보조 검사에서 한 번씩 실행했다. 기존 사용자별 소유권 모델은 바꾸지 않았으며, 현재 초대 전용 개인 pool의 운영자 읽기 범위를 유지한다. 프런트 로그인·CORS 연결과 실제 Incident 상세 200, 이벤트·DLQ 전체 경로는 별도 검증이다. M3는 In Progress다.
