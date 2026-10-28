@@ -1,6 +1,6 @@
 # M2·M3 검증 기준과 증거 기록
 
-이 문서는 **검증할 기준**입니다. 계획에 적힌 항목을 완료 사실로 읽지 않습니다. 확인일 2026-10-28 기준 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/38544496325)는 Backend 자동 테스트와 Terraform 형식·구성 검사를 통과했습니다. 이 검토에서는 테스트를 다시 실행하거나 AWS 계정을 조회하지 않았습니다. 기존 [README](../../README.md)는 2026-10-14 당시 M2·M3 미배포를 기록하며, **현재 AWS 자원 상태는 직접 미확인**입니다.
+이 문서는 **검증할 기준과 확인한 결과**를 구분해 기록합니다. 기존 [GitHub CI 기록](https://github.com/YeonWoojuice/LambdaOps/actions/runs/38544496325)에서 Backend 자동 테스트와 Terraform 형식·구성 검사 통과를 확인했습니다. 이번 SQL 작업에서 실행한 로컬 검사는 아래 절에 별도로 기록합니다. 기존 [README](../../README.md)는 2026-10-14 당시 M2·M3 미배포를 기록하며, **이번 작업에서 AWS 자원 상태를 직접 조회하거나 변경하지 않았습니다.**
 
 | 검증 단계 | 지금 있는 근거 | 아직 필요한 증거 |
 | --- | --- | --- |
@@ -8,6 +8,20 @@
 | M2 코드 | [Alarm 3종](../../infra/modules/m2-alarms/main.tf), CI의 Terraform 검사 | 선택한 임계값·최소 건수의 근거, 검토된 적용 계획, 실제 자원과 `ALARM→OK` 이력 |
 | M3 로컬 코드 | [Fixture와 테스트](../../backend/tests/), CI의 Backend 검사 | DSQL 전환 후 같은 규칙의 테스트와 실제 저장소·동시성 검증 |
 | M3 AWS 전체 흐름 | [수집·조회 Terraform](../../infra/modules/m3-core/main.tf)과 [Backend](../../backend/lambdaops_m3/)의 정의 | 실제 전달·저장·실패 큐·JWT 조회·DSQL 연결을 보여 주는 결과 |
+
+## 2026-10-28 DSQL 생성 SQL의 로컬 검증
+
+기준은 `185ba6a` 이후의 로컬 SQL 작업입니다. [생성·설치 확인 SQL](../../backend/sql/dsql/README.md)을 별도 PostgreSQL 18.4 임시 DB에 적용했습니다. 001~003은 그대로 실행하고, 004~007은 로컬 입력에서만 `INDEX ASYNC`를 `INDEX`로 바꿨습니다. DSQL 원본 SQL은 수정하지 않았습니다.
+
+| 검사 | 결과 | 검증 범위 |
+| --- | --- | --- |
+| 테이블 생성 | 3개 테이블, 컬럼 8·11·13개 확인 | PostgreSQL 공통 SQL 문법·테이블 제약 |
+| 인덱스 설치 확인 | 예상 10개, 실제 10개, 준비 상태 true | 이름·소속·유일성·valid/ready 확인 및 실제 정의 대조 |
+| 누락 인덱스 감지 | 인덱스 하나를 트랜잭션 안에서 제거하자 실제 9개·준비 상태 false, 이후 롤백 | 일부 인덱스만 존재해도 성공으로 표시하지 않는지 확인 |
+| [SQL 제약조건 테스트](../../backend/tests_sql/test_schema.py) | 32개 테스트 통과 | 정상 상태·NULL·길이·JSON·중복·FK·부분 UNIQUE·연결 전환 순서 |
+| 기존 백엔드 테스트 | 46개 통과 | 현행 이벤트 처리·DynamoDB 테스트 대역·인증 조회 회귀 검사 |
+
+제약조건 테스트는 각 사례를 롤백하며 종료 후 세 테이블의 데이터가 0건임을 확인했습니다. 임시 DB도 종료했습니다. 실제 DSQL의 DDL·비동기 인덱스·카탈로그 쿼리·OCC·IAM·Lambda 연결은 미검증입니다. PostgreSQL의 통과 결과를 AWS 환경 검증으로 사용하지 않습니다. SQL 테스트는 별도 실행 명령을 사용하며 기존 CI의 `backend/tests` 실행에 자동 포함되지 않습니다.
 
 ## M2를 완료로 판단할 기준
 

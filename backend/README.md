@@ -3,13 +3,16 @@
 ## Storage decision — 2026-10-28
 
 Aurora DSQL is the selected Incident database. The code and behavior documented
-below still describe the current DynamoDB implementation; the DSQL adapter,
-physical schema, connection/authentication setup, and integration tests are pending.
-The three-table logical model and stable Incident ID rule are approved, but
-this DynamoDB adapter does not implement that target model.
+below still describe the current DynamoDB implementation. The approved
+three-table schema is now defined in [DSQL creation SQL](sql/dsql/README.md),
+with 32 separate local PostgreSQL constraint tests. Actual DSQL application,
+the adapter, connection/authentication setup, and AWS integration tests are pending.
+The stable Incident ID rule is approved, but this DynamoDB adapter does not
+implement that target model.
 Preserve the Alarm episode, dedupe, state-history, out-of-order replay, and
 read-authorization contracts during the transition. The expanded list-query
-contract and indexes will be designed before implementation. See the
+contract will be finalized before implementation; the initial schema indexes
+do not cover every search pattern. See the
 [Incident DB decision](../docs/decisions/0001-incident-db.md).
 
 This package handles the three M2 CloudWatch alarms without changing the M2

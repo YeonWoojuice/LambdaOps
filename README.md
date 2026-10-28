@@ -49,9 +49,9 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 
 사용자 결정으로 **Aurora DSQL을 LambdaOps의 Incident DB로 확정**했습니다. 서비스·환경·상태·기간 필터, 검색, 정렬, 페이지 번호 및 정확한 전체 건수 조회 요구사항을 SQL로 설계합니다. 빈번한 조회·저장을 고려하며, 무료 운영이나 DynamoDB보다 낮은 비용을 전제하지 않습니다. 대표 데이터와 호출 빈도로 처리량·저장량을 측정해 비용을 검증합니다.
 
-현재 실행 코드와 Terraform은 여전히 DynamoDB를 사용합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)에서 DSQL의 alarms·alarm_events·incidents **3개 논리 테이블과 ID 보존·연결 규칙은 승인**됐습니다. **물리 테이블 생성·연결·저장 어댑터·Terraform 전환 및 AWS 검증은 아직 수행하지 않았습니다.** EventBridge → SQS → Lambda 경로와 아래 Incident 규칙을 유지하며, Terraform 상태 잠금용 DynamoDB는 Incident DB와 역할이 다릅니다.
+현재 실행 코드와 Terraform은 여전히 DynamoDB를 사용합니다. 승인된 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)를 바탕으로 **3개 테이블·32개 컬럼·10개 인덱스의 [생성 SQL](backend/sql/dsql/README.md)을 작성했고, 로컬 PostgreSQL 제약조건 테스트 32개가 통과했습니다.** 실제 DSQL 적용·연결·저장 어댑터·Terraform 전환 및 AWS 검증은 남아 있습니다. EventBridge → SQS → Lambda 경로와 아래 Incident 규칙을 유지하며, Terraform 상태 잠금용 DynamoDB는 Incident DB와 역할이 다릅니다.
 
-전환 순서는 **승인된 3개 논리 테이블의 자료형·제약·키·인덱스와 조회 계약 설계 → DSQL 저장·조회 구현 → Terraform·IAM·Lambda 연결 수정 → fixture·동시성·조회 테스트 → AWS 환경·비용 검증**입니다. 현재 `limit`/`nextToken` API는 구현 근거로 유지하고, 페이지 번호·검색·건수 조회의 새 계약은 별도 설계 후 구현합니다. 조회 범위와 사용자 권한도 그 계약에서 함께 정합니다.
+전환 순서는 **생성 SQL 검증·조회 계약 확정 → DSQL 저장·조회 구현 → Terraform·IAM·Lambda 연결 수정 → fixture·동시성·조회 테스트 → AWS 환경·비용 검증**입니다. 현재 `limit`/`nextToken` API는 구현 근거로 유지하고, 페이지 번호·검색·건수 조회의 새 계약은 별도 설계 후 구현합니다. 조회 범위와 사용자 권한도 그 계약에서 함께 정합니다.
 
 선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Cognito·Agent 관련 선택은 이번 DB 결정과 별개입니다.
 
@@ -68,6 +68,8 @@ AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 
 | [`docs/testing/`](docs/testing/) | 코드·AWS 환경 검증 기준과 증거 구분 |
 | [`backend/lambdaops_m3/`](backend/lambdaops_m3/) | 이벤트 계약, Incident 처리·저장, 수집·조회 Lambda |
 | [`backend/tests/`](backend/tests/) | ALARM·OK·INSUFFICIENT_DATA·중복·역순 이벤트 fixture와 테스트 |
+| [`backend/sql/dsql/`](backend/sql/dsql/) | 승인된 DSQL 테이블·인덱스 생성 SQL, 설치 확인 SQL과 실행 안내 |
+| [`backend/tests_sql/`](backend/tests_sql/) | 별도 로컬 PostgreSQL에서 실행하는 SQL 제약조건 테스트 |
 | [`backend/scripts/`](backend/scripts/) | Python 3.12 Lambda 배포 ZIP 생성 |
 | [`frontend/`](frontend/) | 승인된 Pen 시안을 옮긴 React·TypeScript 화면, 예시 지표와 M3 조회 클라이언트 |
 | [`infra/modules/m2-alarms/`](infra/modules/m2-alarms/) | 재사용 가능한 M2 Alarm Terraform 모듈 |
