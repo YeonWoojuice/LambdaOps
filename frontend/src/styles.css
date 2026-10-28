@@ -1,0 +1,215 @@
+:root {
+  font-family: "Noto Sans KR", "Open Sans", sans-serif;
+  color-scheme: dark;
+  --signal-background: #0b1220;
+  --signal-panel: #172333;
+  --signal-border: #33465b;
+  --signal-text: #f0f5fa;
+  --signal-muted: #a8b8c9;
+  --signal-cyan: #60d5e9;
+  --signal-red: #ff7178;
+  --signal-amber: #f0be62;
+  --signal-green: #67d2a4;
+}
+
+html, body, #root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  background: var(--signal-background);
+}
+
+.lambdaops-app {
+  min-height: 100vh;
+  background: var(--signal-background);
+}
+
+.review-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 11px;
+  border: 1px solid var(--signal-border);
+  border-radius: 4px;
+  color: var(--signal-cyan);
+  background: #1d2b3c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metric-grid,
+.detail-primary-grid {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-primary-grid {
+  grid-template-columns: minmax(0, 1.95fr) minmax(310px, 1fr);
+  align-items: stretch;
+}
+
+.metric-panel,
+.timeline-panel {
+  min-width: 0;
+}
+
+.metric-peak {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.metric-figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.metric-figure .recharts-wrapper:focus-visible {
+  outline: 2px solid var(--signal-cyan);
+  outline-offset: 2px;
+}
+
+.chart-caption {
+  margin-top: 7px;
+  color: var(--signal-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.state-timeline {
+  list-style: none;
+  margin: 2px 0 18px 10px;
+  padding: 0 0 0 24px;
+  border-left: 2px solid var(--signal-border);
+}
+
+.state-timeline-item {
+  position: relative;
+  padding: 0 0 27px 0;
+}
+
+.state-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.state-timeline-item::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: -33px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--signal-amber);
+  box-shadow: 0 0 0 4px var(--signal-panel);
+}
+
+.state-alarm::before { background: var(--signal-red); }
+.state-ok::before { background: var(--signal-green); }
+
+.state-timeline-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.state-timeline-heading strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--signal-amber);
+}
+
+.state-alarm .state-timeline-heading strong { color: var(--signal-red); }
+.state-ok .state-timeline-heading strong { color: var(--signal-green); }
+
+.state-timeline-heading time,
+.state-timeline-item p {
+  color: var(--signal-muted);
+  font-size: 11px;
+}
+
+.state-timeline-heading time { white-space: nowrap; }
+.state-timeline-item p { margin: 3px 0 0; line-height: 1.5; }
+
+.raw-event {
+  border: 1px solid var(--signal-border);
+  border-radius: 4px;
+  color: var(--signal-cyan);
+  background: #1d2b3c;
+  font-size: 12px;
+}
+
+.raw-event summary {
+  cursor: pointer;
+  padding: 10px 12px;
+}
+
+.raw-event pre {
+  overflow: auto;
+  max-height: 200px;
+  margin: 0;
+  padding: 12px;
+  border-top: 1px solid var(--signal-border);
+  color: var(--signal-text);
+  font-size: 11px;
+}
+
+.incident-alarm-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.incident-alarm-cell > span {
+  color: var(--signal-muted);
+  font-size: 11px;
+}
+
+.table-page-count {
+  color: var(--signal-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.detail-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.copyable-id { overflow-wrap: anywhere; }
+
+.metrics-pending {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--signal-text);
+}
+
+.metrics-pending p { color: var(--signal-muted); }
+
+.page-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  .detail-primary-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .metric-grid { grid-template-columns: 1fr; }
+  .metric-peak { font-size: 15px; }
+  .detail-state { gap: 7px; }
+  .state-timeline-heading { flex-direction: column; gap: 2px; }
+}
