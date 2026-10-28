@@ -1,5 +1,15 @@
 # M3 incident core infrastructure
 
+## Storage decision — 2026-10-28
+
+Aurora DSQL is the selected Incident database. This module still provisions
+DynamoDB; the DSQL resource, database roles, IAM permissions, Lambda connection
+settings, and schema initialization are pending. Update and validate those
+pieces with the DSQL backend before using this module for the selected design.
+The EventBridge/SQS/Lambda path and separate read/write roles remain part of M3.
+The bootstrap DynamoDB table is for Terraform state locking, not Incident data.
+See the [Incident DB decision](../../../docs/decisions/0001-incident-db.md).
+
 This module connects the three M2 CloudWatch alarms to an SQS-backed incident ingester and exposes authenticated incident reads. It creates one DynamoDB table, an EventBridge rule, an ingest queue, separate delivery and consumer dead-letter queues, two Python Lambdas, and an HTTP API. It does not create an AWS environment, publish the Slash metrics, or deploy itself.
 
 ## Inputs and code contract

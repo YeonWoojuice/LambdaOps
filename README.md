@@ -1,8 +1,8 @@
 # LambdaOps
 
-LambdaOps는 AWS 서비스의 장애 신호를 받아 **Alarm 에피소드마다 Incident 한 건을 기록**하고, 권한 있는 사용자가 그 근거를 조회할 수 있게 만드는 캡스톤 프로젝트입니다. 장기 목표는 AI 원인 분석과 사용자 승인 후 복구까지 연결하는 것이며, 현재 작업 범위는 **M2 경보와 M3 Incident Core**입니다.
+LambdaOps는 AWS 서비스의 장애 신호를 받아 **Alarm 에피소드마다 대표 Incident 한 건을 기록**하고, 권한 있는 사용자가 그 근거를 조회할 수 있게 만드는 캡스톤 프로젝트입니다. 장기 목표는 AI 원인 분석과 사용자 승인 후 복구까지 연결하는 것이며, 현재 작업 범위는 **M2 경보와 M3 Incident Core**입니다.
 
-## 처리 흐름
+## 현재 구현의 처리 흐름
 
 ```mermaid
 flowchart LR
@@ -17,40 +17,55 @@ flowchart LR
     Read --> DB
 ```
 
-이 그림은 현재 M2·M3 코드가 구성하려는 경로입니다. **2026-10-14 기준 M2 Alarm과 M3 자원은 AWS에 아직 배포되지 않았습니다.** Slash API·DB도 현재 로컬에서만 실행 중입니다.
+이 그림은 현재 M2·M3 **코드가 구성하려는 경로**입니다. 2026-10-14 저장소 기록에는 M2 Alarm·M3 자원이 미배포이고 Slash API·DB가 로컬에서 실행 중이라고 적혀 있습니다. 현재 AWS 계정 상태는 별도 확인이 필요합니다. 확정된 전체 목표와의 차이는 [현재·목표 아키텍처](docs/architecture/overview.md)에 정리합니다.
 
 ## 현재 진행 상태
 
-| 구간 | 구현·로컬 검증 | 실제 AWS 상태 |
+| 구간 | 코드·기록된 로컬 검증 | 마지막 문서의 AWS 상태 |
 | --- | --- | --- |
 | Terraform 상태 저장소 | 암호화·버전 관리 S3와 DynamoDB 잠금 설정 | dev 계정에 생성, 원격 상태 이전 완료 |
-| M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 지표 실측과 기준값 결정 전이라 미배포 |
+| M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 2026-10-14 기록상 미배포; LambdaOps 대상 AWS 지표·임계값·Alarm 전이 미검증 |
 | M3 Incident Core | 이벤트 처리, DynamoDB 저장, 인증된 목록·상세 조회 구현; 로컬 테스트 **46개 통과** | EventBridge·SQS·Lambda·Incident DB·API 미배포 |
 | 로그인 | OIDC/JWT 연결점 구현, Cognito 설정 방법 문서화 | Cognito는 검토 중이며 미생성 |
-| 화면 | Pen 와이어프레임 검토 후 구현 예정 | 프런트엔드 코드 없음 |
+| 화면 | Pen 와이어프레임 존재; Cloudscape 기준 수정·사용자 검토 예정 | 프런트엔드 코드 없음 |
+
+AWS 상태 열은 기존 문서의 기록이며, 이번 문서 정리에서 AWS 계정을 직접 조회하지 않았습니다. CI 통과를 배포 검증으로 표시하지 않습니다.
 
 ## 초기 기술 스택안과 현재 구현
 
-초기 발표 자료에는 아래 기술을 역할별 **구현 예정안**으로 제시했습니다. 현재 코드가 같은 기술을 모두 채택하거나 완성했다는 뜻은 아닙니다.
+초기 발표 자료의 기술안, 이번에 확정한 목표 아키텍처, 현재 구현을 구분합니다. 아래 초기 발표안의 언어·프레임워크가 모두 최종 그림에서 확정되거나 구현됐다는 뜻은 아닙니다.
 
 | 역할 | 초기 발표안 | 현재 M2·M3 코드와 결정 상태 |
 | --- | --- | --- |
 | 프런트엔드 | React · TypeScript | Pen 검토 단계; 프런트엔드 코드 없음 |
-| 요청·승인 백엔드 | Java · Spring Boot | M3 조회는 Python 3.12 Lambda로 구현; 승인·도구 호출 API와 Spring Boot 코드는 없음 |
-| AI 에이전트 | Bedrock · Strands · AgentCore | M3 범위 밖; 채택·구현 전 |
+| 요청·승인 백엔드 | Java · Spring Boot | 목표 그림은 Lambda Backend; 현재 M3 조회는 Python 3.12 Lambda이며 승인·도구 호출 API와 Spring Boot 코드는 없음 |
+| AI 에이전트 | Bedrock · Strands · AgentCore | 최종 목표로 선택; M3 범위 밖이며 현재 코드·배포 없음 |
 | 이벤트 처리 | EventBridge · SQS · Lambda | 동일한 경로의 Terraform과 수집 Lambda 코드 작성; AWS 배포 검증 전 |
-| Incident 저장 | Aurora DSQL | M3에는 DynamoDB 단일 테이블 구현; 최종 저장소 결정은 별도 확인 필요 |
+| Incident 저장 | Aurora DSQL | **2026-10-28 Aurora DSQL 채택 확정**; 현재 코드는 DynamoDB이며 DSQL 전환 구현 예정 |
 | 인프라 | Terraform | 상태 저장소 적용 완료; M2·M3 자원은 미배포 |
-| 외부 도구 연결 | MCP | M3 범위 밖; 구현 전 |
+| 외부 도구 연결 | MCP | 최종 목표의 읽기·승인 후 복구 도구; M3 범위 밖이며 구현 전 |
 
-[개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 발표 자료의 AgentCore·Strands·Aurora DSQL을 현재 채택된 구현 기술로 보지 않습니다. [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)는 Aurora DSQL을 후보로 두고, DynamoDB를 **M3의 현재 구현**으로 기록합니다. 위 표는 기술을 폐기하거나 최종 확정하는 결정이 아닙니다.
+### Incident DB 결정 — 2026-10-28
 
-M3에서는 **Alarm 에피소드당 Incident 한 건**을 만듭니다. 동일 이벤트는 계정·리전·Alarm ARN·상태·전환 시각으로 중복을 판별합니다. `OK`는 해당 Alarm 에피소드의 종료 시각을 기록하지만 서비스 전체 복구나 Incident `Resolved`를 뜻하지 않습니다. `INSUFFICIENT_DATA`는 종료로 처리하지 않으며, 오래된 전환 이벤트가 최신 상태를 덮어쓰지 못하도록 합니다. 자세한 규칙은 [백엔드 설명](backend/README.md)에 있습니다.
+사용자 결정으로 **Aurora DSQL을 LambdaOps의 Incident DB로 확정**했습니다. 서비스·환경·상태·기간 필터, 검색, 정렬, 페이지 번호 및 정확한 전체 건수 조회 요구사항을 SQL로 설계합니다. 빈번한 조회·저장을 고려하며, 무료 운영이나 DynamoDB보다 낮은 비용을 전제하지 않습니다. 대표 데이터와 호출 빈도로 처리량·저장량을 측정해 비용을 검증합니다.
+
+현재 실행 코드와 Terraform은 여전히 DynamoDB를 사용합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)에서 DSQL의 alarms·alarm_events·incidents **3개 논리 테이블과 ID 보존·연결 규칙은 승인**됐습니다. **물리 테이블 생성·연결·저장 어댑터·Terraform 전환 및 AWS 검증은 아직 수행하지 않았습니다.** EventBridge → SQS → Lambda 경로와 아래 Incident 규칙을 유지하며, Terraform 상태 잠금용 DynamoDB는 Incident DB와 역할이 다릅니다.
+
+전환 순서는 **승인된 3개 논리 테이블의 자료형·제약·키·인덱스와 조회 계약 설계 → DSQL 저장·조회 구현 → Terraform·IAM·Lambda 연결 수정 → fixture·동시성·조회 테스트 → AWS 환경·비용 검증**입니다. 현재 `limit`/`nextToken` API는 구현 근거로 유지하고, 페이지 번호·검색·건수 조회의 새 계약은 별도 설계 후 구현합니다. 조회 범위와 사용자 권한도 그 계약에서 함께 정합니다.
+
+선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Cognito·Agent 관련 선택은 이번 DB 결정과 별개입니다.
+
+현재 M3에서는 **Alarm 에피소드당 대표 Incident 한 건**을 만듭니다. DSQL 목표에서 같은 에피소드의 기존 ID를 보존하는 연결용 행은 목록·검색·전체 건수에서 제외합니다. 동일 이벤트는 계정·리전·Alarm ARN·상태·전환 시각으로 중복을 판별합니다. `OK`는 해당 Alarm 에피소드의 종료 시각을 기록하지만 서비스 전체 복구나 Incident `Resolved`를 뜻하지 않습니다. `INSUFFICIENT_DATA`는 종료로 처리하지 않으며, 오래된 전환 이벤트가 최신 상태를 덮어쓰지 못하도록 합니다. 자세한 규칙은 [Alarm 이벤트 계약](docs/contracts/alarm-event.md)과 [백엔드 설명](backend/README.md)에 있습니다.
 
 ## 저장소 구성
 
 | 위치 | 역할 |
 | --- | --- |
+| [`AGENTS.md`](AGENTS.md) | 저장소 공통 에이전트 작업 규칙 |
+| [`docs/architecture/`](docs/architecture/) | 확정 목표와 현재 구현의 차이 |
+| [`docs/contracts/`](docs/contracts/) | Alarm 이벤트와 Incident 조회의 확정 계약 |
+| [`docs/decisions/`](docs/decisions/) | 승인된 기술 결정과 전환 조건 |
+| [`docs/testing/`](docs/testing/) | 코드·AWS 환경 검증 기준과 증거 구분 |
 | [`backend/lambdaops_m3/`](backend/lambdaops_m3/) | 이벤트 계약, Incident 처리·저장, 수집·조회 Lambda |
 | [`backend/tests/`](backend/tests/) | ALARM·OK·INSUFFICIENT_DATA·중복·역순 이벤트 fixture와 테스트 |
 | [`backend/scripts/`](backend/scripts/) | Python 3.12 Lambda 배포 ZIP 생성 |
@@ -73,6 +88,8 @@ python3 -m unittest discover -s tests -v
 
 ## 다음 검증 순서
 
+M3 배포 전에 위 DSQL 전환과 fixture 기반 검증을 완료합니다. M2 실제 배포 검증과 M3 코드 전환은 별도 작업이며, M2를 기다리는 동안에도 fixture로 M3를 검증할 수 있습니다. 검증 항목과 증거 기준은 [M2·M3 검증 계획](docs/testing/m2-m3-verification.md)에 정리합니다.
+
 1. Slash API·DB의 AWS 시험 실행 방식을 정하고 `LambdaOps/Slash` 지표 5종이 60초마다 발행되는지 확인합니다.
 2. 실제 지표와 트래픽으로 M2의 임계값·최소 요청 수를 정한 뒤 Alarm 3개를 적용하고 `ALARM → OK`를 확인합니다.
 3. Cognito를 사용할지와 Incident를 읽을 사용자 범위를 정하고, 실제 발급된 읽기 권한 토큰을 준비합니다.
@@ -80,4 +97,4 @@ python3 -m unittest discover -s tests -v
 
 M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합, 프런트엔드 구현은 이번 Core 범위에 포함되지 않습니다.
 
-설계와 마일스톤의 기준 문서는 [LambdaOps 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)입니다.
+확정 아키텍처·계약·기술 결정은 저장소의 `docs/`에서 코드와 함께 버전 관리합니다. 작업·마일스톤·초안·검증 상태는 기존 [LambdaOps 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)에서 관리하고 확정 문서로 연결합니다.

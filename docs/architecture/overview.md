@@ -1,0 +1,33 @@
+# LambdaOps 아키텍처: 최종 목표와 현재 구현
+
+확인일: 2026-10-28. 아래 그림은 사용자가 확정한 **최종 목표**입니다. 모든 연결이 이미 구현·배포됐다는 뜻은 아닙니다.
+
+![사용자가 확정한 LambdaOps 목표 아키텍처](target-architecture.png)
+
+## 목표 흐름
+
+1. **자동 장애 접수:** CloudWatch Alarm → EventBridge → SQS → Lambda Backend. SQS가 상태 변경 이벤트를 잠시 쌓아 Lambda에 전달합니다. 이벤트의 도착 순서를 상태 전환 순서로 가정하지 않습니다.
+2. **사용자 화면:** Web Frontend ↔ API Gateway ↔ Lambda Backend. 사용자는 장애·분석 결과를 보고 복구 제안을 승인하거나 거절합니다.
+3. **원인 분석:** Backend가 Amazon Bedrock AgentCore에서 실행되는 Strands Agent에 분석을 요청합니다. Agent는 추론에 Amazon Bedrock 모델 API를 호출하고, MCP **읽기 도구**로 CloudWatch Logs/Metrics, GitHub Deployments, AWS 상태, 운영 대상 DB를 조사합니다.
+4. **복구 실행:** 승인된 작업만 MCP Action Tool로 실행합니다. 구현 시 Backend는 인증된 사용자의 승인이 특정 복구 대상·작업에 유효한지 다시 확인해야 합니다. 화면의 승인 표시만으로 실행을 허용하지 않습니다. 거절 또는 미승인이면 실행하지 않습니다.
+5. **기록:** Incident, 분석, 승인, 실행 이력을 Incident DB에 저장합니다. 2026-10-28 사용자 결정은 Aurora DSQL 선택입니다. 그림에 대체 DB 가능성이 표시돼 있어도 대체 DB가 이미 구현됐다는 뜻은 아닙니다. [DB 결정](../decisions/0001-incident-db.md).
+
+## 현재 저장소에서 확인한 범위
+
+| 구간 | 코드·문서 근거 | 환경 검증 상태 |
+| --- | --- | --- |
+| M1 Slash 관측 시험 | [M1 기록](https://app.notion.com/p/3ea91c6807b1819786b6e515e3a2a6f7)에 로컬 실측이 있습니다. Slash 실행 코드는 이 저장소에 없습니다. | Slash의 현재 AWS 실행 상태는 이번 조사에서 확인하지 못했습니다. |
+| M2 Alarm | [Terraform Alarm 3종](../../infra/modules/m2-alarms/main.tf)은 API 5xx 비율, API 평균 지연, DB 쿼리 평균 지연을 다룹니다. | [M2](https://app.notion.com/p/3ea91c6807b181e5a12cf833bac129d8)는 In Progress입니다. 기존 문서에는 AWS 적용·`ALARM→OK` 미검증으로 기록됐으며, 현재 AWS 상태는 직접 확인하지 못했습니다. |
+| M3 접수·Incident | [Python Backend](../../backend/lambdaops_m3/)와 [Terraform](../../infra/modules/m3-core/main.tf)에 EventBridge → SQS → Lambda → **DynamoDB**, JWT 보호 목록·상세 조회 코드가 있습니다. [테스트](../../backend/tests/)가 핵심 에피소드 규칙을 다룹니다. | [CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/38544496325)의 코드·Terraform 검사는 통과했습니다. 실제 AWS 전달·실패 큐 재시도·발급된 토큰 조회는 미검증입니다. [M3](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)는 In Progress입니다. |
+| Incident DB | 현재 Incident 코드와 Terraform은 DynamoDB를 사용합니다. DSQL의 `alarms`·`alarm_events`·`incidents` 논리 모델과 ID 보존·연결 규칙은 승인됐습니다. | DSQL 물리 테이블·연결·저장 코드·인프라·통합 테스트는 아직 없습니다. Terraform 상태 잠금용 DynamoDB는 별개입니다. |
+| Frontend | 로컬 `lambdaops-ui.pen`에는 Incident 화면과 Ant Design 기준 화면이 있습니다. | 프런트 코드는 없습니다. Cloudscape 기준 Pen 수정과 사용자 검토가 먼저입니다. |
+| M4/M5 분석·복구 | 목표 그림에 AgentCore/Strands, Bedrock 모델 호출, MCP 읽기·실행 도구, 사용자 승인이 있습니다. | 이 저장소에는 구현 코드가 없습니다. [M4](https://app.notion.com/p/3ea91c6807b18121b17cf3b7543f23d3)·[M5](https://app.notion.com/p/3ea91c6807b18115904cf3fe839fae76)는 시작 전입니다. |
+
+## 변경하면 안 되는 의미
+
+- CloudWatch **Alarm 에피소드 하나에 목록·건수의 대표 Incident 한 건**을 만듭니다. DSQL 목표에서는 같은 Alarm·에피소드의 이미 발급된 ID를 보존하는 연결 행이 남을 수 있습니다. `monitoring_scope`로 여러 Alarm을 임의 병합하지 않습니다. [이벤트 계약](../contracts/alarm-event.md).
+- `OK`는 해당 Alarm 에피소드 종료입니다. 서비스 전체 복구 증명이나 Incident의 `Resolved` 전환이 아닙니다. `INSUFFICIENT_DATA`도 종료가 아닙니다.
+- 현재 M3 조회 경로는 `GET /incidents`, `GET /incidents/{incidentId}`입니다. [현재 API 계약](../contracts/incident-api.md).
+- 코드 테스트나 Terraform 검증 통과만으로 AWS 배포·전체 흐름 성공을 주장하지 않습니다. [M2/M3 검증 기준](../testing/m2-m3-verification.md).
+
+[기존 Notion 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)는 계획·마일스톤·초안을 관리합니다. 코드와 테스트는 현재 동작의 근거이고, 저장소의 확정 계약·ADR은 코드와 함께 버전을 관리합니다.

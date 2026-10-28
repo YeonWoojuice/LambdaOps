@@ -1,5 +1,15 @@
 # LambdaOps dev Terraform roots
 
+## Incident database decision — 2026-10-28
+
+Aurora DSQL is the selected Incident database. The M3 deployment instructions
+below describe the current DynamoDB module and must be updated after the DSQL
+backend, Terraform module, and fixture tests are ready. DSQL has not been
+provisioned by this decision. M2 verification remains a separate activity.
+The bootstrap DynamoDB state lock table has a separate purpose and is not an
+Incident database migration target. See the
+[Incident DB decision](../../../docs/decisions/0001-incident-db.md).
+
 The `m2/` and `m3/` directories are independent Terraform roots. Deploy M2 first and M3 second. An optional `bootstrap/` root creates state storage only when no approved bucket and lock table already exist. M2 and M3 use the reusable modules under `infra/modules/`; running Terraform from `infra/` or a module directory is not the deployment path. The directory name `dev` identifies this deployment target; it does not establish the metric's `Environment` value. Set `service` and `environment` from the actual publisher and use the same values in both roots. These roots do not create an AWS account, Slash runtime, metric publisher, or identity provider.
 
 ## Before either root

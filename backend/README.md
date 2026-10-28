@@ -1,5 +1,17 @@
 # M3 Incident core
 
+## Storage decision — 2026-10-28
+
+Aurora DSQL is the selected Incident database. The code and behavior documented
+below still describe the current DynamoDB implementation; the DSQL adapter,
+physical schema, connection/authentication setup, and integration tests are pending.
+The three-table logical model and stable Incident ID rule are approved, but
+this DynamoDB adapter does not implement that target model.
+Preserve the Alarm episode, dedupe, state-history, out-of-order replay, and
+read-authorization contracts during the transition. The expanded list-query
+contract and indexes will be designed before implementation. See the
+[Incident DB decision](../docs/decisions/0001-incident-db.md).
+
 This package handles the three M2 CloudWatch alarms without changing the M2
 module. The entry points are `lambdaops_m3.ingest_handler.lambda_handler`
 (EventBridge → SQS → Lambda) and `lambdaops_m3.read_handler.lambda_handler`
