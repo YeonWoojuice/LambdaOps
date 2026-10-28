@@ -1,7 +1,6 @@
 {
   "recorded_at": "2026-10-28T06:27:34.453285+00:00",
   "base_commit": "6d4034cadacf7536037c115a180af7ac50dc390d",
-  "changes_pushed": false,
   "target": {
     "account_id": "642935793048",
     "cluster_arn": "arn:aws:dsql:ap-northeast-2:642935793048:cluster/krugaq2rx2w52ku2bbp7e6piw4",
@@ -170,5 +169,23 @@
     "nonempty detail HTTP 200",
     "distributed concurrency",
     "query cost and performance"
-  ]
+  ],
+  "changes_pushed_at_recording": false,
+  "publication": {
+    "code_commit": "3627cbb1863aac80f7c792b4b5aea4e48cf7e0f0",
+    "branch": "main",
+    "pull_request_created": false,
+    "ci_run_url": "https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025",
+    "ci_conclusion": "success",
+    "ci_jobs": [
+      "Backend unit and SQL tests",
+      "Frontend checks",
+      "Terraform configuration"
+    ],
+    "backend_tests": {
+      "unit": 111,
+      "sql_constraints": 32,
+      "sql_adapter": 23
+    }
+  }
 }

@@ -89,11 +89,13 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행하도록 구성했습니다. 이번 변경의 원격 CI 실행은 아직 확인하지 않았습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다.
+`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행합니다. DSQL 인프라 구현 커밋 `3627cbb`의 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)에서 백엔드·프런트·Terraform 검사가 모두 통과했습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다.
 
 프런트는 `frontend/`에서 `npm ci`, `npm run typecheck`, `npm test`, `npm run build`로 확인합니다. CI에는 이 검사도 포함하며 프런트 배포는 하지 않습니다. 화면의 그래프는 CloudWatch 실측이 아닌 **예시 데이터**입니다. 현행 M3 API에는 Incident 목록·상세만 있어 실제 그래프를 위해서는 인증된 지표 조회 경로가 추가로 필요합니다. [프런트 실행과 데이터 경계](frontend/README.md).
 
 배포 ZIP 제작은 [패키징 안내](backend/scripts/README.md), Terraform 준비·검증·적용 순서는 [dev 배포 안내](infra/environments/dev/README.md)를 따릅니다. AWS 자격 증명, Terraform 상태 파일, 토큰은 Git에 올리지 않습니다.
+
+Slash 시험 대상의 기존 Fargate 구성과 EC2 대안, 서울 리전 예상 비용은 [배포 방식·비용 검토](infra/environments/dev/README.md#slash-시험-환경의-배포-방식과-비용--2026-10-28)에 정리했습니다. 이 검토로 Slash를 배포하거나 기존 구조를 변경하지는 않았습니다.
 
 ## 다음 검증 순서
 

@@ -11,7 +11,7 @@
 
 ## 2026-10-28 DSQL·권한·Lambda 실제 AWS 구성
 
-대상은 계정 `642935793048`, 서울 리전 `ap-northeast-2`, `slash-api`/`dev`다. 기준 커밋은 `6d4034c`이며 이번 Terraform·초기화 도구·문서 변경은 로컬 작업으로 원격 반영 전이다. 이미 다른 프로젝트에서 사용하던 DSQL은 변경하지 않고 LambdaOps 전용 클러스터 `krugaq2rx2w52ku2bbp7e6piw4`를 생성했다.
+대상은 계정 `642935793048`, 서울 리전 `ap-northeast-2`, `slash-api`/`dev`다. 기준 커밋 `6d4034c`에서 작업한 Terraform·초기화 도구·문서를 `3627cbb`로 커밋하고 GitHub main에 직접 반영했다. 이미 다른 프로젝트에서 사용하던 DSQL은 변경하지 않고 LambdaOps 전용 클러스터 `krugaq2rx2w52ku2bbp7e6piw4`를 생성했다.
 
 | 검사 | 실제 결과 | 해석 |
 | --- | --- | --- |
@@ -29,6 +29,18 @@
 실제 적용 중 두 차이를 확인했다. DSQL은 PK 제약과 인덱스에 비키 컬럼 INCLUDE를 자동 표시하므로 검사기가 전체 비키 컬럼과 정확히 일치하는 경우만 인정하도록 수정했다. 또한 DSQL이 관리하는 public 스키마의 CREATE 권한 변경은 거부되며, 사용자 역할은 이미 USAGE 허용·CREATE 금지 상태였다. 지원하지 않는 스키마 변경문을 제거하고 유효 권한을 검사하도록 수정했다. 부분 생성된 두 역할을 확인한 뒤 남은 테이블 권한·IAM 매핑만 적용했으며 테이블을 재생성하지 않았다. 이 동작은 [DSQL 고려사항](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/considerations.html)과 [역할 연결 문서](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/using-database-and-iam-roles.html)를 참고했다.
 
 최종 설정은 `dsql_schema_ready=true`, `connect_m2_alarms=false`, `enable_http_api=false`다. M2 상태 파일·대상 Alarm이 없어서 가짜 ARN을 넣지 않았으며 SQS 소비 연결은 Disabled다. 수집 Lambda의 환경변수·IAM/DB 권한은 구성했지만 실제 이벤트를 통한 쓰기는 아직 실행하지 않았다. 공개 HTTP API도 생성하지 않았다.
+
+### GitHub 게시·CI 확인
+
+2026-10-28 PR 없이 main에 `608ae8f`(스키마), `6d4034c`(어댑터·조회 계약), `3627cbb`(DSQL 인프라·권한·검증)를 게시했다. [CI 실행 40645586025](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)는 `3627cbb1863aac80f7c792b4b5aea4e48cf7e0f0`에 대한 push 실행이며 세 job 모두 success다.
+
+| GitHub 검사 | 결과 |
+| --- | --- |
+| Backend unit and SQL tests | 단위 111개·SQL 제약 32개·저장 및 조회 통합 23개 통과 |
+| Frontend checks | 타입 검사·단위 테스트·배포 빌드 통과 |
+| Terraform configuration | 형식 검사와 bootstrap·M2·M3 구성 검사 통과 |
+
+이 실행은 AWS 배포를 수행하지 않았다. 단위·SQL 검사와 실제 환경 검증의 범위를 구분한다. 이후 Slash 배포 검토에서는 기존 개인 저장소의 미커밋 실험 구성을 읽기만 했으며, Slash 파일이나 AWS 자원은 변경하지 않았다.
 
 **직접 호출에는 시험용 authorizer 문맥을 넣었다. 실제 JWT의 서명·발급자·audience 검증이나 API Gateway 통과 결과가 아니다.** 빈 DB의 연결·조회만 확인했으므로 데이터가 있는 상세의 200 응답, 이벤트 재생, 실패 큐, 분산 동시성, 성능·비용은 다음 검증 대상이다. M2와 M3는 In Progress를 유지한다.
 
