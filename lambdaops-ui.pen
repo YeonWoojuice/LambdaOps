@@ -1,0 +1,2394 @@
+{
+  "version": "2.20",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "01 · Incident 목록 · M3 와이어프레임",
+      "clip": true,
+      "width": 1440,
+      "height": 960,
+      "fill": "$bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "tzffB",
+          "name": "상단 바",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "$surface",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "wvLBE",
+              "name": "브랜드",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 5,
+                  "id": "C6RAb",
+                  "name": "브랜드 마크",
+                  "fill": "$blue",
+                  "width": 25,
+                  "height": 25
+                },
+                {
+                  "type": "text",
+                  "id": "tcqJ2",
+                  "name": "브랜드 이름",
+                  "fill": "$ink",
+                  "content": "LambdaOps",
+                  "fontFamily": "Geist",
+                  "fontSize": 20,
+                  "fontWeight": "bold"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TfPQO",
+              "name": "상단 상태",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hu2lm",
+                  "name": "화면 단계",
+                  "fill": "$muted",
+                  "content": "M3 UI 구상",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "fnz9V",
+                  "name": "환경 표시",
+                  "fill": "$blueSoft",
+                  "cornerRadius": 6,
+                  "padding": [
+                    8,
+                    13
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "A4fLJy",
+                      "name": "환경 레이블",
+                      "fill": "$blue",
+                      "content": "dev · 예시 데이터",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HfJLl",
+          "name": "목록 본문",
+          "width": "fill_container",
+          "height": 888,
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            34,
+            48
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "CchMN",
+              "name": "페이지 머리",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h7XPa",
+                  "name": "제목 묶음",
+                  "layout": "vertical",
+                  "gap": 7,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HF4Nm",
+                      "name": "페이지 제목",
+                      "fill": "$ink",
+                      "content": "Incident 목록",
+                      "fontFamily": "Geist",
+                      "fontSize": 34,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "G0dWec",
+                      "name": "페이지 설명",
+                      "fill": "$muted",
+                      "content": "CloudWatch Alarm에서 생성된 장애를 확인합니다.",
+                      "fontFamily": "Geist",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QpYqU",
+                  "name": "새로고침 버튼",
+                  "fill": "$surface",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    11,
+                    15
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "KWy8I",
+                      "name": "새로고침 아이콘",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "refresh-cw",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    },
+                    {
+                      "type": "text",
+                      "id": "o3HDw",
+                      "name": "새로고침 텍스트",
+                      "fill": "$ink",
+                      "content": "새로고침",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U1UHe5",
+              "name": "상태 요약",
+              "width": "fill_container",
+              "height": 130,
+              "fill": "$surface",
+              "cornerRadius": 10,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "sIprV",
+                  "name": "열린 인시던트",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    0,
+                    30
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w4Tbw",
+                      "name": "열린 인시던트 제목",
+                      "fill": "$muted",
+                      "content": "열린 Incident",
+                      "fontFamily": "Geist",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Y1M3Z",
+                      "name": "열린 인시던트 값",
+                      "fill": "$red",
+                      "content": "2",
+                      "fontFamily": "Geist",
+                      "fontSize": 34,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qAzhG",
+                      "name": "열린 인시던트 설명",
+                      "fill": "$muted",
+                      "content": "현재 확인이 필요한 항목",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Wr3i0",
+                  "name": "요약 구분선 1",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 70
+                },
+                {
+                  "type": "frame",
+                  "id": "fh9db",
+                  "name": "오늘 감지",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    0,
+                    30
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wjBVT",
+                      "name": "오늘 감지 제목",
+                      "fill": "$muted",
+                      "content": "오늘 감지",
+                      "fontFamily": "Geist",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IUNxQ",
+                      "name": "오늘 감지 값",
+                      "fill": "$ink",
+                      "content": "3",
+                      "fontFamily": "Geist",
+                      "fontSize": 34,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tOsLv",
+                      "name": "오늘 감지 설명",
+                      "fill": "$muted",
+                      "content": "예시 데이터 기준",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "rbVpB",
+                  "name": "요약 구분선 2",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 70
+                },
+                {
+                  "type": "frame",
+                  "id": "UrPTB",
+                  "name": "오늘 해결",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    0,
+                    30
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "O3x9gl",
+                      "name": "오늘 알람 OK 제목",
+                      "fill": "$muted",
+                      "content": "오늘 알람 OK",
+                      "fontFamily": "Geist",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "OTs88",
+                      "name": "오늘 해결 값",
+                      "fill": "$green",
+                      "content": "1",
+                      "fontFamily": "Geist",
+                      "fontSize": 34,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "cWBDV",
+                      "name": "오늘 알람 OK 설명",
+                      "fill": "$muted",
+                      "content": "OK 상태 전환 기록",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Gww5q",
+              "name": "목록 필터",
+              "width": "fill_container",
+              "height": 48,
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "E4OSs",
+                  "name": "검색 입력",
+                  "width": 390,
+                  "height": 46,
+                  "fill": "$surface",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "b0qc1",
+                      "name": "검색 아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "search",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KZhjM",
+                      "name": "검색 안내",
+                      "fill": "$muted",
+                      "content": "Incident ID 또는 서비스 검색",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FWNl5",
+                  "name": "전체 필터",
+                  "height": 42,
+                  "fill": "$blueSoft",
+                  "cornerRadius": 7,
+                  "stroke": "$blue",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CCmQL",
+                      "name": "전체 필터 레이블",
+                      "fill": "$blue",
+                      "content": "전체",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "JOEky",
+                  "name": "열림 필터",
+                  "height": 42,
+                  "fill": "$surface",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "gZ1ad",
+                      "name": "열림 필터 레이블",
+                      "fill": "$ink",
+                      "content": "열림",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BIOzN",
+                  "name": "해결됨 필터",
+                  "height": 42,
+                  "fill": "$surface",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KZ7go",
+                      "name": "알람 OK 필터 레이블",
+                      "fill": "$ink",
+                      "content": "알람 OK",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LpVSO",
+                  "name": "서비스 필터",
+                  "height": 42,
+                  "fill": "$surface",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Ewk8o",
+                      "name": "서비스 필터 레이블",
+                      "fill": "$ink",
+                      "content": "서비스 전체 ▾",
+                      "fontFamily": "Geist",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jzDHz",
+              "name": "Incident 표",
+              "clip": true,
+              "width": 1344,
+              "height": 328,
+              "fill": "$surface",
+              "cornerRadius": 10,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rPm9T",
+                  "name": "표 헤더",
+                  "width": "fill_container",
+                  "height": 52,
+                  "fill": "#E8EEF5",
+                  "stroke": "$line",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YNLED",
+                      "name": "Incident 헤더 셀",
+                      "width": 510,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SQSIS",
+                          "name": "Incident 헤더",
+                          "fill": "$muted",
+                          "content": "Incident",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kIOR7",
+                      "name": "상태 헤더 셀",
+                      "width": 150,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "V653NV",
+                          "name": "상태 헤더",
+                          "fill": "$muted",
+                          "content": "상태",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ttvgY",
+                      "name": "서비스 헤더 셀",
+                      "width": 200,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rYZmQ",
+                          "name": "서비스 헤더",
+                          "fill": "$muted",
+                          "content": "서비스",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "z3LH7z",
+                      "name": "환경 헤더 셀",
+                      "width": 100,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gBkqk",
+                          "name": "환경 헤더",
+                          "fill": "$muted",
+                          "content": "환경",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dI4cw",
+                      "name": "감지 시각 헤더 셀",
+                      "width": 230,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "mDtCG",
+                          "name": "감지 시각 헤더",
+                          "fill": "$muted",
+                          "content": "감지 시각",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b1iGw",
+                      "name": "출처 헤더 셀",
+                      "width": 154,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "U7niu2",
+                          "name": "출처 헤더",
+                          "fill": "$muted",
+                          "content": "출처",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gWPID",
+                  "name": "INC-2026-001 행",
+                  "width": "fill_container",
+                  "height": 92,
+                  "fill": "$surface",
+                  "stroke": "$line",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Slj01",
+                      "name": "INC-2026-001 Incident 셀",
+                      "width": 510,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FvtqP",
+                          "name": "INC-2026-001 심각도",
+                          "fill": "$redSoft",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            7
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "VFRC3",
+                              "name": "INC-2026-001 심각도 레이블",
+                              "fill": "$red",
+                              "content": "P1",
+                              "fontFamily": "Geist",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s0F3XW",
+                          "name": "INC-2026-001 이름 묶음",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PFQZe",
+                              "name": "INC-2026-001 제목",
+                              "fill": "$ink",
+                              "content": "API 5xx 비율 증가",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "x48aTM",
+                              "name": "INC-2026-001 ID",
+                              "fill": "$muted",
+                              "content": "INC-2026-001",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UH0df",
+                      "name": "INC-2026-001 상태 셀",
+                      "width": 150,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "TfCJ9",
+                          "name": "INC-2026-001 상태",
+                          "fill": "$redSoft",
+                          "cornerRadius": 5,
+                          "padding": [
+                            7,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "QU50X",
+                              "name": "INC-2026-001 상태 레이블",
+                              "fill": "$red",
+                              "content": "열림",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FTjYj",
+                      "name": "INC-2026-001 서비스 셀",
+                      "width": 200,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "B2avnb",
+                          "name": "INC-2026-001 서비스",
+                          "fill": "$ink",
+                          "content": "slash-api",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EoHW6",
+                      "name": "INC-2026-001 환경 셀",
+                      "width": 100,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G8SRpR",
+                          "name": "INC-2026-001 환경",
+                          "fill": "$ink",
+                          "content": "dev",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yYtx6",
+                      "name": "INC-2026-001 시간 셀",
+                      "width": 230,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qldNo",
+                          "name": "INC-2026-001 시간",
+                          "fill": "$ink",
+                          "content": "10.08 14:23",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZO9oJ",
+                      "name": "INC-2026-001 출처 셀",
+                      "width": 154,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UAlfP",
+                          "name": "INC-2026-001 출처",
+                          "fill": "$muted",
+                          "content": "Alarm",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vZWWI",
+                  "name": "INC-2026-002 행",
+                  "width": "fill_container",
+                  "height": 92,
+                  "fill": "$surface",
+                  "stroke": "$line",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wSVPJ",
+                      "name": "INC-2026-002 Incident 셀",
+                      "width": 510,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "y4XJUx",
+                          "name": "INC-2026-002 심각도",
+                          "fill": "$blueSoft",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            7
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PG8QQ",
+                              "name": "INC-2026-002 심각도 레이블",
+                              "fill": "$blue",
+                              "content": "P2",
+                              "fontFamily": "Geist",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "LZhZA",
+                          "name": "INC-2026-002 이름 묶음",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "GkA0A",
+                              "name": "INC-2026-002 제목",
+                              "fill": "$ink",
+                              "content": "API 응답 지연",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "l9UwaL",
+                              "name": "INC-2026-002 ID",
+                              "fill": "$muted",
+                              "content": "INC-2026-002",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W0Nnev",
+                      "name": "INC-2026-002 상태 셀",
+                      "width": 150,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "SPPTg",
+                          "name": "INC-2026-002 상태",
+                          "fill": "$redSoft",
+                          "cornerRadius": 5,
+                          "padding": [
+                            7,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "VEE5q",
+                              "name": "INC-2026-002 상태 레이블",
+                              "fill": "$red",
+                              "content": "열림",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "L0Lbvk",
+                      "name": "INC-2026-002 서비스 셀",
+                      "width": 200,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ji9In",
+                          "name": "INC-2026-002 서비스",
+                          "fill": "$ink",
+                          "content": "slash-api",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OKAv9",
+                      "name": "INC-2026-002 환경 셀",
+                      "width": 100,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ff3lq",
+                          "name": "INC-2026-002 환경",
+                          "fill": "$ink",
+                          "content": "dev",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PCUa2",
+                      "name": "INC-2026-002 시간 셀",
+                      "width": 230,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "VkJIB",
+                          "name": "INC-2026-002 시간",
+                          "fill": "$ink",
+                          "content": "10.08 12:02",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ok9tB",
+                      "name": "INC-2026-002 출처 셀",
+                      "width": 154,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "R3XhvI",
+                          "name": "INC-2026-002 출처",
+                          "fill": "$muted",
+                          "content": "Alarm",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Q97o9e",
+                  "name": "INC-2026-003 행",
+                  "width": "fill_container",
+                  "height": 92,
+                  "fill": "$surface",
+                  "stroke": "$line",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "e3nbtg",
+                      "name": "INC-2026-003 Incident 셀",
+                      "width": 510,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "a5j4H",
+                          "name": "INC-2026-003 심각도",
+                          "fill": "$blueSoft",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            7
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "S9pwhR",
+                              "name": "INC-2026-003 심각도 레이블",
+                              "fill": "$blue",
+                              "content": "P2",
+                              "fontFamily": "Geist",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xWOZx",
+                          "name": "INC-2026-003 이름 묶음",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "n3dZb",
+                              "name": "INC-2026-003 제목",
+                              "fill": "$ink",
+                              "content": "DB 쿼리 지연",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "daS4K",
+                              "name": "INC-2026-003 ID",
+                              "fill": "$muted",
+                              "content": "INC-2026-003",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xIyJx",
+                      "name": "INC-2026-003 상태 셀",
+                      "width": 150,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aoAPQ",
+                          "name": "INC-2026-003 상태",
+                          "fill": "$greenSoft",
+                          "cornerRadius": 5,
+                          "padding": [
+                            7,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "SlVi2",
+                              "name": "INC-2026-003 상태 레이블",
+                              "fill": "$green",
+                              "content": "알람 OK",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FXSG9",
+                      "name": "INC-2026-003 서비스 셀",
+                      "width": 200,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "NWBw7",
+                          "name": "INC-2026-003 서비스",
+                          "fill": "$ink",
+                          "content": "slash-api",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zKGsV",
+                      "name": "INC-2026-003 환경 셀",
+                      "width": 100,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "c4DmMb",
+                          "name": "INC-2026-003 환경",
+                          "fill": "$ink",
+                          "content": "dev",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RHX4W",
+                      "name": "INC-2026-003 시간 셀",
+                      "width": 230,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "HKcaF",
+                          "name": "INC-2026-003 시간",
+                          "fill": "$ink",
+                          "content": "10.07 17:41",
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AeCjY",
+                      "name": "INC-2026-003 출처 셀",
+                      "width": 154,
+                      "height": "fill_container",
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cMOJj",
+                          "name": "INC-2026-003 출처",
+                          "fill": "$muted",
+                          "content": "Alarm",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HMeWT",
+              "name": "목록 하단",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "#F4F7FA",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "DOPPa",
+                  "name": "목록 건수",
+                  "fill": "$muted",
+                  "content": "3건 · 최신 감지 순",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "uacMq",
+                  "name": "데이터 안내",
+                  "fill": "$muted",
+                  "content": "화면 설계 예시 · 실제 Incident 아님",
+                  "fontFamily": "Geist",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "M4hQVD",
+      "x": 1560,
+      "y": 0,
+      "name": "02 · Incident 상세 · M3 와이어프레임",
+      "clip": true,
+      "width": 1440,
+      "height": 960,
+      "fill": "$bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "EmZyD",
+          "name": "상세 상단 바",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "$surface",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "VWNf4",
+              "name": "상세 브랜드",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 5,
+                  "id": "Q6jT8",
+                  "name": "상세 브랜드 마크",
+                  "fill": "$blue",
+                  "width": 25,
+                  "height": 25
+                },
+                {
+                  "type": "text",
+                  "id": "gupjN",
+                  "name": "상세 브랜드 이름",
+                  "fill": "$ink",
+                  "content": "LambdaOps",
+                  "fontFamily": "Geist",
+                  "fontSize": 20,
+                  "fontWeight": "bold"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VSQD6",
+              "name": "상세 상단 상태",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Y2PDL",
+                  "name": "상세 단계",
+                  "fill": "$muted",
+                  "content": "M3 UI 구상",
+                  "fontFamily": "Geist",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Lv4A6",
+                  "name": "상세 환경 표시",
+                  "fill": "$blueSoft",
+                  "cornerRadius": 6,
+                  "padding": [
+                    8,
+                    13
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "fCWNr",
+                      "name": "상세 환경 텍스트",
+                      "fill": "$blue",
+                      "content": "dev · 예시 데이터",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mNz1u",
+          "name": "상세 본문",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            40,
+            48
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "EbXhz",
+              "name": "이동 경로",
+              "fill": "$blue",
+              "content": "Incident 목록  /  INC-2026-001",
+              "fontFamily": "Geist",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "DC6Rw",
+              "name": "Incident 제목 줄",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gErQV",
+                  "name": "상세 제목",
+                  "fill": "$ink",
+                  "content": "API 5xx 비율 증가",
+                  "fontFamily": "Geist",
+                  "fontSize": 34,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "frame",
+                  "id": "R7rPK",
+                  "name": "열림 상태 배지",
+                  "fill": "$redSoft",
+                  "cornerRadius": 6,
+                  "padding": [
+                    8,
+                    13
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CY5i0",
+                      "name": "열림 배지 텍스트",
+                      "fill": "$red",
+                      "content": "열림",
+                      "fontFamily": "Geist",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "nwZoC",
+              "name": "상세 설명",
+              "fill": "$muted",
+              "content": "INC-2026-001  ·  slash-api  ·  dev",
+              "fontFamily": "Geist",
+              "fontSize": 15,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "QluA6",
+              "name": "Incident 핵심 요약",
+              "width": "fill_container",
+              "height": 104,
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "fINLo",
+                  "name": "현재 상태",
+                  "width": 432,
+                  "height": 104,
+                  "fill": "$surface",
+                  "cornerRadius": 10,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    18,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "U2wmS",
+                      "name": "현재 상태 라벨",
+                      "fill": "$muted",
+                      "content": "상태",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "j4E5U",
+                      "name": "현재 상태 값",
+                      "fill": "$red",
+                      "content": "ALARM",
+                      "fontFamily": "Geist",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Q2JAo0",
+                  "name": "감지 시각",
+                  "width": 432,
+                  "height": 104,
+                  "fill": "$surface",
+                  "cornerRadius": 10,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    18,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bcgmi",
+                      "name": "감지 시각 라벨",
+                      "fill": "$muted",
+                      "content": "최초 감지",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NO6lG",
+                      "name": "감지 시각 값",
+                      "fill": "$ink",
+                      "content": "2026.10.08 14:23 KST",
+                      "fontFamily": "Geist",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vpfYA",
+                  "name": "신호 출처",
+                  "width": 448,
+                  "height": 104,
+                  "fill": "$surface",
+                  "cornerRadius": 10,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    18,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zRAzS",
+                      "name": "신호 출처 라벨",
+                      "fill": "$muted",
+                      "content": "출처",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "g96ZuI",
+                      "name": "신호 출처 값",
+                      "fill": "$ink",
+                      "content": "CloudWatch Alarm",
+                      "fontFamily": "Geist",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "E0bgKl",
+              "name": "근거와 메타데이터",
+              "width": "fill_container",
+              "height": 470,
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qCj1b",
+                  "name": "원본 근거 및 이력",
+                  "width": 860,
+                  "height": 470,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YqV9F",
+                      "name": "CloudWatch Alarm 원본 근거",
+                      "width": "fill_container",
+                      "height": 280,
+                      "fill": "$surface",
+                      "cornerRadius": 10,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": [
+                        22,
+                        24
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "T21mEZ",
+                          "name": "Alarm 근거 제목 줄",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CqBC0",
+                              "name": "Alarm 근거 제목",
+                              "fill": "$ink",
+                              "content": "원본 CloudWatch Alarm",
+                              "fontFamily": "Geist",
+                              "fontSize": 18,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "BprrM",
+                              "name": "ALARM 배지",
+                              "fill": "$redSoft",
+                              "cornerRadius": 5,
+                              "padding": [
+                                6,
+                                10
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "WoMXq",
+                                  "name": "ALARM 배지 텍스트",
+                                  "fill": "$red",
+                                  "content": "ALARM",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 12,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "ExjXF",
+                          "name": "Alarm 근거 설명",
+                          "fill": "$muted",
+                          "content": "Alarm 상태 변경 이벤트에서 보존한 판단 근거",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dz6v1",
+                          "name": "Alarm 평가 값",
+                          "width": "fill_container",
+                          "height": 70,
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "NTbWn",
+                              "name": "평가 지표",
+                              "width": 264,
+                              "height": 70,
+                              "fill": "$surfaceSoft",
+                              "cornerRadius": 7,
+                              "layout": "vertical",
+                              "gap": 6,
+                              "padding": [
+                                11,
+                                14
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "OT9SX",
+                                  "name": "평가 지표 라벨",
+                                  "fill": "$muted",
+                                  "content": "평가 지표",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 11,
+                                  "fontWeight": "bold"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "f2ueEi",
+                                  "name": "평가 지표 값",
+                                  "fill": "$ink",
+                                  "content": "API 5xx rate (%)",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 16,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "PXlI7",
+                              "name": "관측값",
+                              "width": 264,
+                              "height": 70,
+                              "fill": "$surfaceSoft",
+                              "cornerRadius": 7,
+                              "layout": "vertical",
+                              "gap": 6,
+                              "padding": [
+                                11,
+                                14
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Qkm4O",
+                                  "name": "관측값 라벨",
+                                  "fill": "$muted",
+                                  "content": "관측값",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 11,
+                                  "fontWeight": "bold"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Qr4RI",
+                                  "name": "관측값 값",
+                                  "fill": "$red",
+                                  "content": "23.4%",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 16,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "ujCHN",
+                              "name": "임계값",
+                              "width": 264,
+                              "height": 70,
+                              "fill": "$surfaceSoft",
+                              "cornerRadius": 7,
+                              "layout": "vertical",
+                              "gap": 6,
+                              "padding": [
+                                11,
+                                14
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "zoWUp",
+                                  "name": "임계값 라벨",
+                                  "fill": "$muted",
+                                  "content": "임계값",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 11,
+                                  "fontWeight": "bold"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "F4oDx",
+                                  "name": "임계값 값",
+                                  "fill": "$ink",
+                                  "content": "10.0%",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 16,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pIwkV",
+                          "name": "상태 변경 이유",
+                          "width": "fill_container",
+                          "fill": "$surfaceSoft",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "gap": 4,
+                          "padding": [
+                            10,
+                            14
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "a4Lub",
+                              "name": "상태 변경 이유 라벨",
+                              "fill": "$muted",
+                              "content": "STATE REASON",
+                              "fontFamily": "Geist",
+                              "fontSize": 10,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dtRno",
+                              "name": "상태 변경 이유 내용",
+                              "fill": "$ink",
+                              "content": "최근 평가 구간에서 5xx 비율이 설정된 임계값을 초과했습니다.",
+                              "fontFamily": "Geist",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "F3cAv",
+                      "name": "상태 변경 이력",
+                      "width": "fill_container",
+                      "height": 174,
+                      "fill": "$surface",
+                      "cornerRadius": 10,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": [
+                        18,
+                        24
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qM8c2",
+                          "name": "이력 제목",
+                          "fill": "$ink",
+                          "content": "Incident 이력",
+                          "fontFamily": "Geist",
+                          "fontSize": 17,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "e78TZM",
+                          "name": "ALARM 이벤트 수신",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "l8oqTl",
+                              "name": "ALARM 이벤트 수신 시각",
+                              "fill": "$muted",
+                              "content": "14:23:12",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "UZbee",
+                              "name": "ALARM 이벤트 수신 내용",
+                              "fill": "$red",
+                              "content": "ALARM 이벤트 수신",
+                              "fontFamily": "Geist",
+                              "fontSize": 13,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "iQkPW",
+                          "name": "Incident 생성",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "aZPTc",
+                              "name": "Incident 생성 시각",
+                              "fill": "$muted",
+                              "content": "14:23:13",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "hq6Ze",
+                              "name": "Incident 생성 내용",
+                              "fill": "$blue",
+                              "content": "Incident 생성",
+                              "fontFamily": "Geist",
+                              "fontSize": 13,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "o4LX9z",
+                          "name": "정상 복귀 이벤트 대기",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rfi8K",
+                              "name": "정상 복귀 이벤트 대기 시각",
+                              "fill": "$muted",
+                              "content": "—",
+                              "fontFamily": "Geist",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "S8olp",
+                              "name": "OK 전환 이벤트 대기 내용",
+                              "fill": "$muted",
+                              "content": "Alarm OK 전환 대기",
+                              "fontFamily": "Geist",
+                              "fontSize": 13,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "blm32",
+                  "name": "Incident 메타데이터",
+                  "width": 468,
+                  "height": 470,
+                  "fill": "$surface",
+                  "cornerRadius": 10,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 13,
+                  "padding": [
+                    22,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Uqy4S",
+                      "name": "메타데이터 제목",
+                      "fill": "$ink",
+                      "content": "Incident 메타데이터",
+                      "fontFamily": "Geist",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nTKCQ",
+                      "name": "메타데이터 설명",
+                      "fill": "$muted",
+                      "content": "조회 전용 · 원본 이벤트 연결 정보",
+                      "fontFamily": "Geist",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "njBs2",
+                      "name": "Incident ID 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ucero",
+                          "name": "Incident ID 라벨",
+                          "fill": "$muted",
+                          "content": "Incident ID",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "d7WD2",
+                          "name": "Incident ID 값",
+                          "fill": "$ink",
+                          "content": "INC-2026-001",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TAcSS",
+                      "name": "서비스 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "fqMuv",
+                          "name": "서비스 라벨",
+                          "fill": "$muted",
+                          "content": "서비스",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Q0dY1s",
+                          "name": "서비스 값",
+                          "fill": "$ink",
+                          "content": "slash-api",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xmjcI",
+                      "name": "환경 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KYIJY",
+                          "name": "환경 라벨",
+                          "fill": "$muted",
+                          "content": "환경",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "GxkEn",
+                          "name": "환경 값",
+                          "fill": "$ink",
+                          "content": "dev",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "YoKcq",
+                      "name": "AWS 리전 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BLmKe",
+                          "name": "AWS 리전 라벨",
+                          "fill": "$muted",
+                          "content": "AWS 리전",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "v3E4cP",
+                          "name": "AWS 리전 값",
+                          "fill": "$ink",
+                          "content": "ap-northeast-2",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WzSTt",
+                      "name": "Alarm 이름 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jz3Ps",
+                          "name": "Alarm 이름 라벨",
+                          "fill": "$muted",
+                          "content": "Alarm 이름",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ZYEqi",
+                          "name": "Alarm 이름 값",
+                          "fill": "$ink",
+                          "content": "lambdaops-dev-slash-api-5xx",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PSudS",
+                      "name": "Alarm ARN 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "h4ZqW",
+                          "name": "Alarm ARN 라벨",
+                          "fill": "$muted",
+                          "content": "Alarm ARN",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "lQ4Nb",
+                          "name": "Alarm ARN 값",
+                          "fill": "$ink",
+                          "content": "…:alarm:lambdaops-dev-slash-api-5xx",
+                          "fontFamily": "Geist",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WlXGK",
+                      "name": "원본 Event ID 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iRVwG",
+                          "name": "원본 Event ID 라벨",
+                          "fill": "$muted",
+                          "content": "원본 Event ID",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "uVG27",
+                          "name": "원본 Event ID 값",
+                          "fill": "$ink",
+                          "content": "evt-8d12…2fe0",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "R75qS",
+                      "name": "해결 시각 행",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eK8ov",
+                          "name": "Alarm OK 시각 라벨",
+                          "fill": "$muted",
+                          "content": "Alarm OK 시각",
+                          "fontFamily": "Geist",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "LaoBF",
+                          "name": "해결 시각 값",
+                          "fill": "$ink",
+                          "content": "—",
+                          "fontFamily": "Geist",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Iwcg2",
+              "name": "상세 예시 주석",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x43d5l",
+                  "name": "예시 데이터 안내",
+                  "fill": "$muted",
+                  "content": "설계용 예시 데이터 · 관측값과 임계값은 실제 배포 설정이 아닙니다.",
+                  "fontFamily": "Geist",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "qgb8b",
+                  "name": "구현 범위 안내",
+                  "fill": "$muted",
+                  "content": "M3 · Incident 조회 화면",
+                  "fontFamily": "Geist",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "bg": {
+      "type": "color",
+      "value": "#F4F7FA"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "surfaceSoft": {
+      "type": "color",
+      "value": "#F8FAFC"
+    },
+    "nav": {
+      "type": "color",
+      "value": "#142235"
+    },
+    "ink": {
+      "type": "color",
+      "value": "#172337"
+    },
+    "muted": {
+      "type": "color",
+      "value": "#64748B"
+    },
+    "line": {
+      "type": "color",
+      "value": "#DDE5ED"
+    },
+    "blue": {
+      "type": "color",
+      "value": "#3979D9"
+    },
+    "blueSoft": {
+      "type": "color",
+      "value": "#EAF2FF"
+    },
+    "red": {
+      "type": "color",
+      "value": "#BF4250"
+    },
+    "redSoft": {
+      "type": "color",
+      "value": "#FDEFF1"
+    },
+    "green": {
+      "type": "color",
+      "value": "#16805A"
+    },
+    "greenSoft": {
+      "type": "color",
+      "value": "#E7F7EF"
+    },
+    "amber": {
+      "type": "color",
+      "value": "#A96818"
+    },
+    "amberSoft": {
+      "type": "color",
+      "value": "#FFF5E4"
+    }
+  },
+  "fileToken": "6f8ab4f5-53f8-4625-bc08-29822a2a41d0"
+}
