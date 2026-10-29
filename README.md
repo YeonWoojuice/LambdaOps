@@ -63,7 +63,7 @@ AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 �
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | 저장소 공통 에이전트 작업 규칙 |
 | [`docs/architecture/`](docs/architecture/) | 확정 목표와 현재 구현의 차이 |
-| [`docs/contracts/`](docs/contracts/) | Alarm 이벤트와 Incident 조회의 확정 계약 |
+| [`docs/contracts/`](docs/contracts/) | 확정된 Alarm·Incident 계약과 별도로 표시한 M4·M5 및 실측 지표 API 제안 |
 | [`docs/decisions/`](docs/decisions/) | 승인된 기술 결정과 전환 조건 |
 | [`docs/testing/`](docs/testing/) | 코드·AWS 환경 검증 기준과 증거 구분 |
 | [`backend/lambdaops_m3/`](backend/lambdaops_m3/) | 이벤트 계약, Incident 처리·저장, 수집·조회 Lambda |
@@ -89,7 +89,7 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-`main`에 코드를 올리면 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행합니다. DSQL 인프라 구현 커밋 `3627cbb`의 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)에서 백엔드·프런트·Terraform 검사가 모두 통과했습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다.
+`main` 대상 PR과 `main` push에서 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행합니다. DSQL 인프라 구현 커밋 `3627cbb`의 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)에서 백엔드·프런트·Terraform 검사가 모두 통과했습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다. 작업별 브랜치·분리된 `git worktree`·PR 검토와 병합·AWS 배포의 별도 승인은 [작업 규칙](AGENTS.md)을 따릅니다.
 
 프런트는 `frontend/`에서 `npm ci`, `npm run typecheck`, `npm test`, `npm run build`로 확인합니다. CI에는 이 검사도 포함하며 프런트 배포는 하지 않습니다. 화면의 그래프는 CloudWatch 실측이 아닌 **예시 데이터**입니다. 현행 M3 API에는 Incident 목록·상세만 있어 실제 그래프를 위해서는 인증된 지표 조회 경로가 추가로 필요합니다. [프런트 실행과 데이터 경계](frontend/README.md).
 
@@ -109,3 +109,5 @@ M3 기반 자원과 실제 이벤트·사용자 조회 연결을 단계별로 �
 M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 프런트 코드는 별도 예시 화면 단계이며 M3 Core의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
 
 확정 아키텍처·계약·기술 결정은 저장소의 `docs/`에서 코드와 함께 버전 관리합니다. 작업·마일스톤·초안·검증 상태는 기존 [LambdaOps 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)에서 관리하고 확정 문서로 연결합니다.
+
+실측 그래프의 [지표 조회 API](docs/contracts/incident-metrics-api.md), [M4 RCA](docs/contracts/rca-analysis.md), [M5 승인·실행](docs/contracts/recovery-approval.md), [M4·M5 검증 게이트](docs/testing/m4-m5-verification.md)는 **사용자 검토 전 설계 초안**입니다. `lambdaops-ui.pen`의 신규 화면도 설계 초안이며, 이를 실제 API·Agent·복구 기능의 구현이나 AWS 검증 결과로 간주하지 않습니다.
