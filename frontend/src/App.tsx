@@ -12,14 +12,14 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import TopNavigation from '@cloudscape-design/components/top-navigation';
 import { demoIncidentDetails, demoIncidents, demoMetricSeries, demoMetricSeriesByIncident } from './data/demo';
-import type { IncidentDetail, IncidentSummary, MetricSeries } from './data/types';
+import type { IncidentDetail, IncidentListResponse, IncidentSummary, MetricSeries } from './data/types';
 import AlarmTimeline from './components/AlarmTimeline';
 import IncidentTable from './components/IncidentTable';
 import MetricChart from './components/MetricChart';
 import './styles.css';
 
 type IncidentSource = {
-  listIncidents: (options?: { limit?: number; nextToken?: string; signal?: AbortSignal }) => Promise<{ items: IncidentSummary[]; nextToken: string | null }>;
+  listIncidents: (options?: { page?: number; pageSize?: number; signal?: AbortSignal }) => Promise<IncidentListResponse>;
   getIncident: (incidentId: string, signal?: AbortSignal) => Promise<IncidentDetail>;
 };
 
@@ -74,7 +74,7 @@ function NoMetrics() {
   );
 }
 
-function Overview({ items, sourceIsDemo, onSelect }: { items: IncidentSummary[]; sourceIsDemo: boolean; onSelect: (id: string) => void }) {
+function Overview({ items, totalItems, sourceIsDemo, onSelect }: { items: IncidentSummary[]; totalItems?: number; sourceIsDemo: boolean; onSelect: (id: string) => void }) {
   const errorRate = metric(demoMetricSeries, 'errorRate');
   const apiLatency = metric(demoMetricSeries, 'apiLatency');
   const dbLatency = metric(demoMetricSeries, 'dbLatency');
@@ -95,14 +95,16 @@ function Overview({ items, sourceIsDemo, onSelect }: { items: IncidentSummary[];
             </div>
           </>
         ) : <NoMetrics />}
-        <IncidentTable items={items} onSelect={onSelect} />
+        <IncidentTable items={items} totalItems={totalItems} onSelect={onSelect} />
       </SpaceBetween>
     </ContentLayout>
   );
 }
 
-function IncidentList({ items, onSelect, sourceIsDemo, onNext, onPrevious, hasNext, hasPrevious }: {
+function IncidentList({ items, page, totalItems, onSelect, sourceIsDemo, onNext, onPrevious, hasNext, hasPrevious }: {
   items: IncidentSummary[];
+  page?: number;
+  totalItems?: number;
   onSelect: (id: string) => void;
   sourceIsDemo: boolean;
   onNext: () => void;
@@ -114,7 +116,7 @@ function IncidentList({ items, onSelect, sourceIsDemo, onNext, onPrevious, hasNe
     <ContentLayout header={<Header variant="h1" description="Alarm 에피소드마다 목록에 보이는 대표 Incident 한 건을 확인합니다.">Incidents</Header>}>
       <SpaceBetween size="l">
         {sourceIsDemo && <DemoNotice />}
-        <IncidentTable title="Incident 목록" items={items} onSelect={onSelect} />
+        <IncidentTable title="Incident 목록" items={items} page={page} totalItems={totalItems} onSelect={onSelect} />
         {(hasNext || hasPrevious) && (
           <div className="page-controls">
             <Button disabled={!hasPrevious} onClick={onPrevious}>이전</Button>
@@ -138,6 +140,11 @@ function IncidentDetails({ incident, sourceIsDemo }: { incident: IncidentDetail;
       <SpaceBetween size="l">
         <Alert type="info" header="Alarm 상태와 업무 상태는 별개입니다">Alarm OK는 해당 Alarm 에피소드의 종료만 뜻합니다. 서비스 전체 복구나 Incident 해결의 증거로 취급하지 않습니다. INSUFFICIENT_DATA도 복구가 아닙니다.</Alert>
         {sourceIsDemo && <DemoNotice />}
+        {!sourceIsDemo && incident.redirected && incident.requestedIncidentId && (
+          <Alert type="info" header="대표 Incident로 연결됨">
+            요청한 {incident.requestedIncidentId}의 현재 대표 기록은 {incident.incidentId}입니다.
+          </Alert>
+        )}
         {showSampleMetrics && primarySeries ? (
           <>
             <div className="detail-primary-grid">
@@ -177,9 +184,9 @@ export default function App({ incidentSource }: AppProps) {
   const [route, setRoute] = useState<Route>(currentRoute);
   const [items, setItems] = useState<IncidentSummary[]>(sourceIsDemo ? demoIncidents : []);
   const [detail, setDetail] = useState<IncidentDetail | null>(null);
-  const [listToken, setListToken] = useState<string | undefined>();
-  const [tokenHistory, setTokenHistory] = useState<(string | undefined)[]>([]);
-  const [nextToken, setNextToken] = useState<string | null>(null);
+  const [listPage, setListPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [totalItems, setTotalItems] = useState<number | undefined>();
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<{ incidentId: string; message: string } | null>(null);
@@ -192,16 +199,20 @@ export default function App({ incidentSource }: AppProps) {
   }, []);
 
   useEffect(() => {
+    if (route.page === 'overview') setListPage(1);
+  }, [route.page]);
+
+  useEffect(() => {
     if (!incidentSource) return;
     const controller = new AbortController();
     setListLoading(true);
     setListError(null);
-    incidentSource.listIncidents({ limit: 50, nextToken: listToken, signal: controller.signal })
-      .then(response => { setItems(response.items); setNextToken(response.nextToken); })
-      .catch(() => { if (!controller.signal.aborted) { setItems([]); setNextToken(null); setListError('Incident 목록을 읽지 못했습니다. 인증과 연결 상태를 확인해 주세요.'); } })
+    incidentSource.listIncidents({ page: listPage, pageSize: 50, signal: controller.signal })
+      .then(response => { setItems(response.items); setHasNextPage(response.hasNextPage); setTotalItems(response.totalItems); })
+      .catch(() => { if (!controller.signal.aborted) { setItems([]); setHasNextPage(false); setTotalItems(undefined); setListError('Incident 목록을 읽지 못했습니다. 인증과 연결 상태를 확인해 주세요.'); } })
       .finally(() => { if (!controller.signal.aborted) setListLoading(false); });
     return () => controller.abort();
-  }, [incidentSource, listToken]);
+  }, [incidentSource, listPage]);
 
   useEffect(() => {
     if (route.page !== 'detail') return;
@@ -216,21 +227,19 @@ export default function App({ incidentSource }: AppProps) {
   }, [incidentSource, route]);
 
   const routeDetail = route.page === 'detail'
-    ? (sourceIsDemo ? demoIncidentDetails[route.incidentId] ?? null : detail?.incidentId === route.incidentId ? detail : null)
+    ? (sourceIsDemo ? demoIncidentDetails[route.incidentId] ?? null : (detail?.requestedIncidentId ?? detail?.incidentId) === route.incidentId ? detail : null)
     : null;
   const currentDetailError = route.page === 'detail' && detailError?.incidentId === route.incidentId ? detailError.message : null;
   const activeHref = route.page === 'overview' ? '#/overview' : '#/incidents';
   const goNext = () => {
-    if (!nextToken || listLoading) return;
-    setTokenHistory([...tokenHistory, listToken]);
-    setListToken(nextToken);
-    setNextToken(null);
+    if (!hasNextPage || listLoading) return;
+    setHasNextPage(false);
+    setListPage(page => page + 1);
   };
   const goPrevious = () => {
-    if (tokenHistory.length === 0 || listLoading) return;
-    setListToken(tokenHistory[tokenHistory.length - 1]);
-    setTokenHistory(tokenHistory.slice(0, -1));
-    setNextToken(null);
+    if (listPage <= 1 || listLoading) return;
+    setHasNextPage(false);
+    setListPage(page => page - 1);
   };
   const breadcrumbs = route.page === 'detail'
     ? [{ text: 'LambdaOps', href: '#/overview' }, { text: 'Incidents', href: '#/incidents' }, { text: routeDetail?.alarmName ?? route.incidentId, href: `#/incidents/${route.incidentId}` }]
@@ -238,9 +247,9 @@ export default function App({ incidentSource }: AppProps) {
 
   let content;
   if (route.page === 'overview') {
-    content = <Overview items={items} sourceIsDemo={sourceIsDemo} onSelect={id => navigate(`incidents/${id}`)} />;
+    content = <Overview items={items} totalItems={totalItems} sourceIsDemo={sourceIsDemo} onSelect={id => navigate(`incidents/${id}`)} />;
   } else if (route.page === 'incidents') {
-    content = <IncidentList items={items} sourceIsDemo={sourceIsDemo} onSelect={id => navigate(`incidents/${id}`)} hasNext={!!nextToken && !listLoading} hasPrevious={tokenHistory.length > 0 && !listLoading} onNext={goNext} onPrevious={goPrevious} />;
+    content = <IncidentList items={items} page={sourceIsDemo ? undefined : listPage} totalItems={totalItems} sourceIsDemo={sourceIsDemo} onSelect={id => navigate(`incidents/${id}`)} hasNext={hasNextPage && !listLoading} hasPrevious={listPage > 1 && !listLoading} onNext={goNext} onPrevious={goPrevious} />;
   } else if (routeDetail) {
     content = <IncidentDetails incident={routeDetail} sourceIsDemo={sourceIsDemo} />;
   } else {

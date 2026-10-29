@@ -15,8 +15,8 @@ export interface IncidentApiClientOptions {
 }
 
 export interface ListIncidentsOptions {
-  limit?: number;
-  nextToken?: string;
+  page?: number;
+  pageSize?: number;
   signal?: AbortSignal;
 }
 
@@ -51,6 +51,14 @@ function record(value: unknown): value is Record<string, unknown> {
 function stringField(value: Record<string, unknown>, key: string): string {
   const field = value[key];
   if (typeof field !== "string") {
+    throw new IncidentApiError("invalid_response", `Invalid Incident response: ${key}`);
+  }
+  return field;
+}
+
+function integerField(value: Record<string, unknown>, key: string, minimum: number, maximum: number): number {
+  const field = value[key];
+  if (!Number.isSafeInteger(field) || typeof field !== "number" || field < minimum || field > maximum) {
     throw new IncidentApiError("invalid_response", `Invalid Incident response: ${key}`);
   }
   return field;
@@ -104,12 +112,20 @@ function parseHistoryEntry(value: unknown): AlarmStateHistoryEntry {
   };
 }
 
-function parseDetail(value: unknown): IncidentDetail {
+function parseDetail(value: unknown, requestedId: string): IncidentDetail {
   if (!record(value) || !Array.isArray(value.stateHistory)) {
     throw new IncidentApiError("invalid_response", "Invalid Incident detail");
   }
+  const summary = parseSummary(value);
+  const requestedIncidentId = stringField(value, "requestedIncidentId");
+  if (requestedIncidentId !== requestedId || typeof value.redirected !== "boolean" ||
+      value.redirected !== (requestedIncidentId !== summary.incidentId)) {
+    throw new IncidentApiError("invalid_response", "Invalid Incident detail ID link");
+  }
   return {
-    ...parseSummary(value),
+    ...summary,
+    requestedIncidentId,
+    redirected: value.redirected,
     stateHistory: value.stateHistory.map(parseHistoryEntry),
   };
 }
@@ -118,12 +134,22 @@ function parseList(value: unknown): IncidentListResponse {
   if (!record(value) || !Array.isArray(value.items)) {
     throw new IncidentApiError("invalid_response", "Invalid Incident list");
   }
-  if (value.nextToken !== null && typeof value.nextToken !== "string") {
-    throw new IncidentApiError("invalid_response", "Invalid Incident list: nextToken");
+  const page = integerField(value, "page", 1, 1_000_000);
+  const pageSize = integerField(value, "pageSize", 1, 100);
+  const totalItems = integerField(value, "totalItems", 0, Number.MAX_SAFE_INTEGER);
+  const totalPages = integerField(value, "totalPages", 0, Number.MAX_SAFE_INTEGER);
+  const hasNextPage = value.hasNextPage;
+  if (typeof hasNextPage !== "boolean" || totalPages !== Math.ceil(totalItems / pageSize) ||
+      hasNextPage !== (page < totalPages)) {
+    throw new IncidentApiError("invalid_response", "Invalid Incident list pagination");
   }
   return {
     items: value.items.map(parseSummary),
-    nextToken: value.nextToken,
+    page,
+    pageSize,
+    totalItems,
+    totalPages,
+    hasNextPage,
   };
 }
 
@@ -155,14 +181,21 @@ export class IncidentApiClient {
   }
 
   async listIncidents(options: ListIncidentsOptions = {}): Promise<IncidentListResponse> {
-    const { limit = 50, nextToken, signal } = options;
-    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-      throw new IncidentApiError("invalid_request", "limit must be an integer from 1 to 100");
+    const { page = 1, pageSize = 50, signal } = options;
+    if (!Number.isInteger(page) || page < 1 || page > 1_000_000) {
+      throw new IncidentApiError("invalid_request", "page must be an integer from 1 to 1000000");
+    }
+    if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+      throw new IncidentApiError("invalid_request", "pageSize must be an integer from 1 to 100");
     }
     const url = new URL("incidents", this.baseUrl);
-    url.searchParams.set("limit", String(limit));
-    if (nextToken !== undefined) url.searchParams.set("nextToken", nextToken);
-    return parseList(await this.getJson(url, signal));
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("pageSize", String(pageSize));
+    const result = parseList(await this.getJson(url, signal));
+    if (result.page !== page || result.pageSize !== pageSize) {
+      throw new IncidentApiError("invalid_response", "Incident list page does not match request");
+    }
+    return result;
   }
 
   async getIncident(incidentId: string, signal?: AbortSignal): Promise<IncidentDetail> {
@@ -170,7 +203,7 @@ export class IncidentApiClient {
       throw new IncidentApiError("invalid_request", "Invalid incidentId");
     }
     const url = new URL(`incidents/${incidentId}`, this.baseUrl);
-    return parseDetail(await this.getJson(url, signal));
+    return parseDetail(await this.getJson(url, signal), incidentId);
   }
 
   private async getJson(url: URL, signal?: AbortSignal): Promise<unknown> {
