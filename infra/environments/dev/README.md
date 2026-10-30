@@ -1,6 +1,24 @@
 # LambdaOps dev Terraform roots
 
-## Current AWS and image readiness — 2026-10-30 13:18–13:20 KST
+## Image readiness update — 2026-10-30 15:12 KST
+
+The earlier image-readiness assessment below used stale Slash checkout `7ec7140` and missed fixes already on remote `main`. Fetching the current remote showed `3c11a99db2502573e6446a946bb17cdcbaad26d9`, including Boot 4 migration `9b5a6c5`, DB image source fix `e778f48`, publication record `06dfc1a` and [actual Cognito verification PR #2](https://github.com/YeonWoojuice/slash-personal/pull/2). This update **supersedes the API/DB current-readiness conclusions**, while the prior AWS inventory remains a dated scoped observation. No duplicate migration or image rebuild was needed.
+
+| Image | Current verified artifact and result |
+| --- | --- |
+| API | ECR `slash-lab/api:m2-20261030-boot412-cognito1`, manifest `sha256:99575923af1d78a6d7cc54f461072a0a1347b9c2ae441538f93f3e6ecd39256b`, linux/amd64. Build inputs 294 and retained context match current source. New local Trivy scan: OS 73 / Java 151 packages, findings 0; isolated runtime/auth/metrics/WebSocket smoke 28/28 |
+| DB test | ECR `slash-lab/db-test:m2-20261029-highfix2`, manifest `sha256:82b02a988204e1b463dace5e32b1c5c4155db19ea07e2164e025fc2efc01ba84`, linux/amd64. Tracked recipe/input hashes 7, config and 7 layers match. New local Trivy scan: OS 33 packages, findings 0; PostgreSQL 16/18 tests 17 each, 34/34 |
+
+[API evidence](../../../docs/testing/evidence/2026-10-30-api-image-reverification.json) distinguishes the new 06:08 UTC scan and 28 synthetic local checks from the **existing** PostgreSQL 16/18 569-tests-each records and actual Cognito checks. The current local run did not reuse a live Cognito token or connect to AWS DBs. [DB evidence](../../../docs/testing/evidence/2026-10-30-db-image-verification.json) distinguishes the stale 15-test attempt from the successful current 17-test definitions; no failed assertion was suppressed.
+
+The API digest was independently observed in ECR at 15:12 KST under the newer tag, pushed at **15:08:09 KST by another task**, with an existing ECR scan completed at 15:08:19. The older tag `m2-20261029-boot412` was absent; tag absence did not mean digest absence. **This task did not publish either image**, create AWS resources, run load or start an ECR scan. DB highfix2 was already published on 10/29.
+
+These findings establish candidate content/provenance and local function evidence, not signed supply-chain attestation or complete security. API lacks a source-revision label; source association rests on retained metadata/context/input hashes and archive comparison. DB source/content matches existing build/publication records, not a newly reproduced build. Local scanner results use the recorded advisory databases and do not certify absence of all defects.
+
+Next execution preparation can now use these exact digests as candidates in a **saved plan for review**, preserving explicit deployment approval. Reconfirm image/config selection, API auth/metrics port boundaries, architecture, PostgreSQL version, task/secret/network mapping and DB fault target. The DB runner's Seoul RDS hostname suffix check does not independently prove the intended account/instance. Keep DB-test enablement and any real cancellation/delay operation separately approved. M2 thresholds/minimum counts, bounded fault plan, spending/time limits, cleanup and actual M2→M3 evidence remain required; M4/M5 contracts remain drafts.
+
+
+## Earlier AWS inventory and initial image assessment — 2026-10-30 13:18–13:20 KST
 
 [Read-only evidence](../../../docs/testing/evidence/2026-10-30-aws-readiness.json) records account `642935793048`, Seoul. PR #6 was merged before this follow-up. No deployment, load, DB write, message receive/send or new image scan was executed.
 

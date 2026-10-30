@@ -1,0 +1,274 @@
+{
+  "recorded_at": "2026-10-30T06:12:08.506538+00:00",
+  "scope": "Existing upstream API image independent local reverification; no new build, source fix, image publication, AWS mutation or load test.",
+  "source": {
+    "repository": "slash-personal",
+    "commit": "3c11a99db2502573e6446a946bb17cdcbaad26d9",
+    "upstream": "origin/main",
+    "build_input_files_compared": 294,
+    "current_source_mismatches": [],
+    "retained_build_context_mismatches": [],
+    "input_hash_manifest_sha256": "54899e725395b0dfed84bdb66983e6759d0a1fc921201294a22d029d71fbb215"
+  },
+  "image": {
+    "local_tag": "slash-personal-api:m2-20261029-boot412",
+    "platform": "linux/amd64",
+    "manifest_digest": "sha256:99575923af1d78a6d7cc54f461072a0a1347b9c2ae441538f93f3e6ecd39256b",
+    "config_digest": "sha256:cc99492a1aa513fb5363da4c4b60cd058986e53b942ade323f34596c3a70cc41",
+    "docker_containerd_observed_id": "sha256:99575923af1d78a6d7cc54f461072a0a1347b9c2ae441538f93f3e6ecd39256b",
+    "source_revision_label": {},
+    "archive_blob_count": 15,
+    "archive_blob_hash_failures": [],
+    "archive_sha256": "3450299b13e33d90b5088ac61b04f8366c858f76e1a1164e3b7592c055b86b6c",
+    "runtime_dependency_jars": 147,
+    "runtime_class_or_resource_files": 230,
+    "matching_existing_source_resource_mismatches": [],
+    "selected_jars": [
+      "httpclient5-5.6.5.jar",
+      "log4j-api-2.25.5.jar",
+      "spring-boot-4.1.2.jar",
+      "spring-boot-actuator-4.1.2.jar",
+      "spring-boot-actuator-autoconfigure-4.1.2.jar",
+      "spring-boot-autoconfigure-4.1.2.jar",
+      "spring-boot-data-commons-4.1.2.jar",
+      "spring-boot-data-redis-4.1.2.jar",
+      "spring-boot-flyway-4.1.2.jar",
+      "spring-boot-health-4.1.2.jar",
+      "spring-boot-http-client-4.1.2.jar",
+      "spring-boot-http-converter-4.1.2.jar",
+      "spring-boot-jackson-4.1.2.jar",
+      "spring-boot-jarmode-tools-4.1.2.jar",
+      "spring-boot-jdbc-4.1.2.jar",
+      "spring-boot-jooq-4.1.2.jar",
+      "spring-boot-micrometer-metrics-4.1.2.jar",
+      "spring-boot-micrometer-observation-4.1.2.jar",
+      "spring-boot-netty-4.1.2.jar",
+      "spring-boot-persistence-4.1.2.jar",
+      "spring-boot-restclient-4.1.2.jar",
+      "spring-boot-security-4.1.2.jar",
+      "spring-boot-security-oauth2-resource-server-4.1.2.jar",
+      "spring-boot-servlet-4.1.2.jar",
+      "spring-boot-sql-4.1.2.jar",
+      "spring-boot-tomcat-4.1.2.jar",
+      "spring-boot-transaction-4.1.2.jar",
+      "spring-boot-validation-4.1.2.jar",
+      "spring-boot-web-server-4.1.2.jar",
+      "spring-boot-webmvc-4.1.2.jar",
+      "spring-boot-websocket-4.1.2.jar",
+      "spring-webmvc-7.0.10.jar"
+    ],
+    "provenance_limit": "Retained local BuildKit metadata, build context and 294 input hashes agree with current source; OCI blob hashes and runtime archive are checked. No revision label, signed provenance, or independent byte-for-byte reproducible build establishes cryptographic source-to-binary attestation."
+  },
+  "fresh_security_scan": {
+    "created_at": "2026-10-30T06:08:06.532310299Z",
+    "scanner": "aquasec/trivy:0.76.1",
+    "db_metadata": {
+      "Version": 2,
+      "NextUpdate": "2026-10-31T01:01:11.134359572Z",
+      "UpdatedAt": "2026-10-30T01:01:11.134360213Z",
+      "DownloadedAt": "2026-10-30T06:07:46.599041262Z"
+    },
+    "java_db_metadata": {
+      "Version": 1,
+      "NextUpdate": "2026-10-31T01:07:04.331012865Z",
+      "UpdatedAt": "2026-10-28T01:07:04.331013306Z",
+      "DownloadedAt": "2026-10-28T23:49:58.302301542Z"
+    },
+    "scan_flags": [
+      "--scanners vuln",
+      "--skip-db-update",
+      "--skip-java-db-update",
+      "--disable-telemetry"
+    ],
+    "network_during_scan": "none",
+    "results": [
+      {
+        "target": "/input/api-image.tar (alpine 3.24.3)",
+        "class": "os-pkgs",
+        "package_count": 73,
+        "severity_counts": {}
+      },
+      {
+        "target": "Java",
+        "class": "lang-pkgs",
+        "package_count": 151,
+        "severity_counts": {}
+      }
+    ],
+    "suppression_or_ignore": false,
+    "raw_json_sha256": "3bce403b267b4c831eeae9ed33e3590daa53a42ab1110fd5d2df88f4a6bdbe79"
+  },
+  "fresh_local_runtime": {
+    "started_at": "2026-10-30T06:08:37.355470+00:00",
+    "finished_at": "2026-10-30T06:08:50.045844+00:00",
+    "passed": 28,
+    "total": 28,
+    "failed_names": [],
+    "checks": [
+      {
+        "name": "image_identity_and_architecture",
+        "passed": true
+      },
+      {
+        "name": "network_is_internal",
+        "passed": true
+      },
+      {
+        "name": "anchor_has_no_host_ports",
+        "passed": true
+      },
+      {
+        "name": "non_root_runtime",
+        "passed": true,
+        "uid": 100
+      },
+      {
+        "name": "read_only_root_filesystem",
+        "passed": true
+      },
+      {
+        "name": "no_host_ports",
+        "passed": true
+      },
+      {
+        "name": "no_aws_credentials_mounted_or_injected",
+        "passed": true
+      },
+      {
+        "name": "personal_image_liveness",
+        "passed": true
+      },
+      {
+        "name": "signed_local_jwt_me_200",
+        "passed": true
+      },
+      {
+        "name": "local_userinfo_profile_loaded",
+        "passed": true
+      },
+      {
+        "name": "repeat_me_same_user",
+        "passed": true
+      },
+      {
+        "name": "normal_response_security_headers",
+        "passed": true
+      },
+      {
+        "name": "missing_jwt_401",
+        "passed": true
+      },
+      {
+        "name": "invalid_signature_401",
+        "passed": true
+      },
+      {
+        "name": "authenticated_missing_route_404",
+        "passed": true
+      },
+      {
+        "name": "public_metrics_unauthenticated_401",
+        "passed": true
+      },
+      {
+        "name": "public_metrics_authenticated_404",
+        "passed": true
+      },
+      {
+        "name": "forwarded_port_does_not_expose_metrics",
+        "passed": true
+      },
+      {
+        "name": "internal_prometheus_200",
+        "passed": true
+      },
+      {
+        "name": "management_business_route_403",
+        "passed": true
+      },
+      {
+        "name": "me_response_ids_present_and_unique",
+        "passed": true
+      },
+      {
+        "name": "websocket_ticket_201",
+        "passed": true
+      },
+      {
+        "name": "actual_websocket_101_and_connected",
+        "passed": true
+      },
+      {
+        "name": "reused_ticket_closed_4401",
+        "passed": true,
+        "close_code": 4401
+      },
+      {
+        "name": "exactly_one_fixture_user_in_new_database",
+        "passed": true
+      },
+      {
+        "name": "each_me_response_matches_one_timing_record",
+        "passed": true,
+        "records": 4
+      },
+      {
+        "name": "timing_records_contain_no_token_profile_or_password",
+        "passed": true
+      },
+      {
+        "name": "fixture_key_and_token_files_removed",
+        "passed": true
+      }
+    ],
+    "postgresql_server_version_num": 180006,
+    "issuer": "synthetic local RSA JWT; no real Cognito in this fresh run",
+    "network": "internal; no published host ports; no AWS credentials",
+    "raw_json_sha256": "c8dc80d3f1a309cb532974e5adcdb8df7dc57be6291e1d494738df39ad46f906"
+  },
+  "prior_evidence_not_rerun": {
+    "source": "docs/observability/results/2026-10-29-boot4-security-remediation.json at current source",
+    "pg16": {
+      "test_xml_suites": 75,
+      "tests": 569,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pg18": {
+      "test_xml_suites": 75,
+      "tests": 569,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "note": "Parsed retained XML totals and verified build input equivalence; full 1138 tests were not repeated because no source change or new failure occurred. Prior actual Cognito evidence remains separate from new synthetic smoke."
+  },
+  "ecr_read_only": {
+    "region": "ap-northeast-2",
+    "repository": "slash-lab/api",
+    "tag_m2_20261029_boot412": "ImageNotFound; this tag absence does not mean digest unpublished",
+    "digest_query": "present",
+    "tags": [
+      "m2-20261030-boot412-cognito1"
+    ],
+    "pushed_at": "2026-10-30T15:08:09.634000+09:00",
+    "image_size_bytes": 132762194,
+    "note": "Existing publication by another task confirmed read-only; this task did not push. AWS deployment and CloudWatch delivery not verified by this task.",
+    "checked_at": "2026-10-30T06:12:32.142278+00:00",
+    "existing_scan": {
+      "status": "COMPLETE",
+      "completed_at": "2026-10-30T15:08:19+09:00",
+      "vulnerability_source_updated_at": "2026-10-30T15:08:19+09:00",
+      "finding_severity_counts": {},
+      "note": "Existing ECR result only; no start-image-scan called. ECR OS scan is separate from local Trivy Java inventory."
+    },
+    "supersedes": "Older API publication-pending assertions are superseded by this digest query. Tag absence was never digest absence."
+  },
+  "cleanup": {
+    "owned_api_fixture_containers_removed": true,
+    "owned_database_cache_and_internal_network_removed": true,
+    "preexisting_images_or_other_task_resources_removed": false
+  },
+  "remaining": "AWS deployment/CloudWatch metric publication, M2 alarm to M3 incident execution, and load testing require separate approval and are not established by these local results. Image publication in another task is not deployment-image selection or permission for AWS load."
+}
