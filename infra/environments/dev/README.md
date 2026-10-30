@@ -1,6 +1,122 @@
 # LambdaOps dev Terraform roots
 
-## Deployment scope and current state — 2026-10-28
+## M2→M3 verification preparation — 2026-10-30, before AWS approval
+
+This preparation reads repository evidence only. Current AWS resources, current prices,
+credential validity and an executable deployment plan were **not queried**. M4·M5
+contracts and AWS deployment remain subject to separate user approval. The existing
+[M2·M3 evidence and exit criteria](../../../docs/testing/m2-m3-verification.md) remain
+our completion gate; this checklist is not a successful environment test.
+
+### Updated Slash evidence and working-copy boundary
+
+The actual local Slash repository was found at
+`/Users/juyeonu/Documents/my_project/slash-personal`, branch
+`codex/m2-cloudwatch-metrics`, inspected HEAD `7ec7140`. Its dirty Grafana dashboard
+and untracked architecture/k6 work must be preserved. The following source paths are
+in that separate repository; they are evidence locations, not LambdaOps files:
+
+- [Slash M2 metric evidence](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/docs/observability/M2_CLOUDWATCH.md): 2026-10-29 real AWS normal requests and six
+  CloudWatch metrics received. Five interval totals plus diagnostic `DBConnectionsActive`
+  were observed with `Service=slash-api`, `Environment=dev`.
+- [Step-request evidence](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/docs/observability/results/2026-10-29-step-demo/index.json) and
+  [cleanup evidence](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/docs/observability/results/2026-10-29-step-demo/cleanup-verification.json): the later request sequence recorded 709 HTTP 200s,
+  but a 2-second client-time limit caused early stop; overall FAIL, 15/17 checks,
+  and the 5 rps stage incomplete. It does not establish a server capacity limit.
+  Subsequent cleanup verification recorded 59/59 checks; Cognito, ECR and existing
+  LambdaOps were retained. This is the state **then**, not a current AWS inventory.
+- [DB test image review](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/observability/personal/db-test/README.md): the 2026-10-29 normal-experiment
+  record reported four unresolved High findings and kept
+  `enable_db_test_task=false`. Image remediation/review and the exact fault procedure
+  must precede an approval request to enable or run it. No vulnerability rescan or
+  current security-status check was performed here. Do not expose M1 fault routes
+  or relax existing access controls to obtain an Alarm.
+
+### Inputs and measurement worksheet
+
+Fill all five mandatory M2 values from the approved runtime's completed 60-second
+intervals. Preserve raw metric timestamps, sample counts, units, namespace and dimensions
+with each calculation. No presentation threshold or two-point normal sample is a
+validated threshold. DB background jobs mean API request count and DB query count differ.
+
+| Required input | Observation and decision basis |
+| --- | --- |
+| `api_5xx_rate_threshold_percent` | `100 × ServerErrorCount / RequestCount`, same interval and population |
+| `api_average_latency_threshold_ms` | `RequestDurationMsTotal / RequestCount`; mean, not p95 or client total time |
+| `db_average_query_latency_threshold_ms` | `DBQueryDurationMsTotal / DBQueryCount`; actual query timer enabled |
+| `minimum_requests_per_period` | Positive whole count selected from observed normal/test traffic and low-volume behavior |
+| `minimum_db_queries_per_period` | Positive whole query count; distinguish request-related and background work |
+
+All metrics must use namespace `LambdaOps/Slash`, exactly the actual `Service` and
+`Environment`, matching timestamps, `Period=60` and `Sum`. Quiet intervals emit zeros;
+missing points are not zeros. Because the alarms use `notBreaching` and a sample-count
+guard, separately check publisher continuity/availability before interpreting OK.
+
+### Command templates for the later approved environment
+
+These are templates only; no AWS call, Terraform init/plan, load or fault was run by
+this preparation. Replace placeholders locally using the approved account/region and
+keep credentials, tokens, private inputs and raw plans out of Git. The read commands
+retrieve metrics; Terraform planning reads remote resources and state and needs the
+appropriate environment access before execution.
+
+```sh
+aws cloudwatch get-metric-statistics \
+  --profile APPROVED_PROFILE --region DEPLOY_REGION \
+  --namespace LambdaOps/Slash --metric-name RequestCount \
+  --dimensions Name=Service,Value=ACTUAL_SERVICE Name=Environment,Value=ACTUAL_ENVIRONMENT \
+  --statistics Sum --period 60 --start-time START_UTC --end-time END_UTC
+
+terraform -chdir=infra/environments/dev/m2 init -backend-config=backend.hcl
+terraform -chdir=infra/environments/dev/m2 validate
+terraform -chdir=infra/environments/dev/m2 plan \
+  -var-file=dev.tfvars -out=/private/tmp/lambdaops-m2.tfplan
+terraform -chdir=infra/environments/dev/m2 show /private/tmp/lambdaops-m2.tfplan
+```
+
+Repeat the metric read for all five source metrics with identical scope/window, using
+`Count` for the three count metrics and `Milliseconds` for the two duration totals when
+checking units. Verify the account before any plan. M2's initial expected plan is
+**three metric-math Alarms only: 3 create, 0 update, 0 destroy** if no managed M2 resources
+exist. Otherwise report the actual state-dependent difference. No Slash runtime,
+publisher, DB, HTTP API or EventBridge rule belongs in this root's creation scope.
+The current module evaluates 2 of 3 60-second periods and uses
+`GreaterThanThreshold`; equality does not breach. One cancelled query/HTTP 500 does
+not prove this temporal condition. Do not lower safety limits or fabricate metrics
+merely to force ALARM.
+
+### Approval packet and execution order
+
+Before requesting AWS apply/fault approval, provide one concrete packet:
+
+1. Actual account/region, Slash commit and ECR digest, runtime mode, allowed tester
+   IP and token-expiry allowance; current inventory separated from dated evidence.
+2. Start/stop bounds and owner, maximum request rate/concurrency/count, fault scope
+   and explicit stop conditions; the synthetic Slash RDS is distinct from Incident DSQL.
+3. Saved Terraform plan summary and the five measured M2 inputs. M2 state key must
+   differ from M3; after reviewed M2 deployment, pass the exact `alarm_arns` output
+   through M3 remote state rather than inventing ARNs.
+4. Current cost estimate from creation start through cleanup completion, known
+   exclusions and approved spending limit. `expires_at` is a tag, not an automatic stop.
+5. Evidence to retain, experiment resources to remove, and resources to preserve
+   (existing Cognito/ECR/LambdaOps/state). Use a separately reviewed cleanup plan;
+   task count zero or RDS stop is not full cleanup.
+
+After the relevant approvals: verify authentication/access and normal metric continuity;
+measure a normal baseline; conduct only the reviewed bounded faults; retain all three
+actual ALARM→OK histories and source metrics; then review M3 connection and exercise its
+full ingestion/read path. A failure stops progression at the first broken hop. An OK
+ends that Alarm episode, and `INSUFFICIENT_DATA` is not recovery.
+
+The newer historical [Slash baseline cost source](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/docs/observability/results/2026-10-29-baseline-cost-estimate.json) is in that separate
+repository. The [deployment/cleanup record](https://github.com/YeonWoojuice/slash-personal/blob/06dfc1a5c06e181c2e69db68a9eab65599404cf2/infra/personal/README.md) provides the dated runtime context. Its **historical** normal-baseline assumptions give major runtime cost
+`$0.22137/hour`, 2-hour total estimate `$0.72–1.42`, 4-hour `$1.18–1.90`, or 5-hour
+`$1.41–2.13`, USD before tax. They exclude retained Cognito/ECR/LambdaOps costs and are
+neither a current quote nor a hard ceiling; DB fault tools were not included. Refresh
+prices, images, actual resources and expected logs/requests/transfers/cleanup duration
+before deployment approval. The 2026-10-28 comparison below remains historical context.
+
+## Recorded deployment scope — 2026-10-28 (historical)
 
 Aurora DSQL is the selected Incident database. The first M3 apply created 14
 resources in account `642935793048`, Seoul (`ap-northeast-2`), including the
@@ -13,8 +129,9 @@ resources created, one read-Lambda scope setting updated, none deleted.
 `enable_http_api=true`; real code+PKCE tokens now pass empty-list 200, missing-token
 401 and missing-read-scope 403 checks. `connect_m2_alarms=false` remains unchanged:
 there is no M2 state, deployed M2 Alarm or EventBridge rule, and SQS processing
-is disabled. Actual ingestion and an existing Incident detail 200 remain
-unverified. The follow-up plan reports no changes. Pass `-var-file=dev.tfvars`
+is disabled in this dated record. The 2026-10-29 follow-up verified authenticated
+DEMO Incident list/detail reads; actual ingestion remains unverified. The follow-up
+plan at that time reported no changes. Pass `-var-file=dev.tfvars`
 explicitly for this root; that filename is not auto-loaded by Terraform. See the
 [dated evidence](../../../docs/testing/m2-m3-verification.md).
 
@@ -303,7 +420,9 @@ Fargate 월 비교에는 RDS 저장소 $2.62, secret 3개 $1.20, Cloud Map 자�
 - private DNS zone은 생성 후 12시간 안에 삭제하면 zone 요금이 없다. 그 이후에는 $0.50이며 월할하지 않는다. 반복 생성한 zone마다 이 기준이 적용된다. [Route 53](https://aws.amazon.com/route53/pricing/).
 - task 수를 0으로 만들어도 ALB·Valkey 등은 남는다. 기존 실험안에서는 결과를 보관한 뒤 experiment 삭제와 잔여 자원 확인까지 끝내야 한다. RDS 중지는 저장소 비용을 없애지 않고 7일 후 자동 재시작한다. [RDS 중지 동작](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html).
 
-### M2에 연결하기 전에 할 작업
+### M2에 연결하기 전에 할 작업 — 2026-10-28 당시 계획
+
+아래는 당시 준비 순서다. 10/29 실행·정리 근거와 다음 승인 자료는 문서 상단의 10/30 검증 준비 절을 우선 확인한다.
 
 1. 기존 개인 초안의 계정·이미지·Cognito·개인 도메인·인증서 입력과 비용을 정리한다. Slash 로그인과 LambdaOps 조회 인증의 사용자·scope는 각각 확인한다.
 2. `personal` 프로필에서 꺼진 CloudWatch 발행을 켜고 task 역할에 해당 namespace의 PutMetricData 권한을 추가한다. 기존 publisher 코드를 재사용한다.
