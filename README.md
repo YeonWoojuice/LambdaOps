@@ -89,7 +89,7 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-`main` 대상 PR과 `main` push에서 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행합니다. DSQL 인프라 구현 커밋 `3627cbb`의 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)에서 백엔드·프런트·Terraform 검사가 모두 통과했습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다. 작업별 브랜치·분리된 `git worktree`·PR 검토와 병합·AWS 배포의 별도 승인은 [작업 규칙](AGENTS.md)을 따릅니다.
+`main` 대상 PR과 `main` push에서 [CI](.github/workflows/ci.yml)가 Python 3.12 단위 테스트, 일회용 PostgreSQL의 제약조건·어댑터 통합 테스트, Terraform 검사를 실행합니다. DSQL 인프라 구현 커밋 `3627cbb`의 [GitHub CI](https://github.com/YeonWoojuice/LambdaOps/actions/runs/40645586025)에서 백엔드·프런트·Terraform 검사가 모두 통과했습니다. CI는 AWS 자격 증명이나 `terraform plan/apply`를 사용하지 않습니다.
 
 프런트는 `frontend/`에서 `npm ci`, `npm run typecheck`, `npm test`, `npm run build`로 확인합니다. CI에는 이 검사도 포함하며 프런트 배포는 하지 않습니다. 화면의 그래프는 CloudWatch 실측이 아닌 **예시 데이터**입니다. 현행 M3 API에는 Incident 목록·상세만 있어 실제 그래프를 위해서는 인증된 지표 조회 경로가 추가로 필요합니다. [프런트 실행과 데이터 경계](frontend/README.md).
 
