@@ -1,0 +1,175 @@
+{
+  "recorded_at_utc": "2026-10-30T06:10:21.360260+00:00",
+  "scope": "Existing published DB fault-tool image source and local function verification; no image publication, AWS deployment or load",
+  "source": {
+    "review_head": "3c11a99db2502573e6446a946bb17cdcbaad26d9",
+    "image_source_commit": "e778f4886655708e5d07818058efe8a813d75e1e",
+    "publication_record_commit": "06dfc1a5c06e181c2e69db68a9eab65599404cf2",
+    "stale_checkout_correction": "Initial 7ec7140 checkout predated tracked Alpine image source and tests. Remote origin/main 3c11a99 includes it; no new Dockerfile or dependency fix was necessary.",
+    "file_hashes": {
+      "observability/personal/db-test/Dockerfile": {
+        "sha256": "5212163f654f90f5b638f45a1f42c87cc3ca0b125aa890a2fa2e7acc4b87fff2",
+        "matches_recorded": true
+      },
+      "observability/personal/db-test/Dockerfile.dockerignore": {
+        "sha256": "3455bbb631d8f27ab7a4a6a50e658db8627c0d3455e392715b0ab8366fbb8e77",
+        "matches_recorded": true
+      },
+      "observability/personal/db-test/entrypoint.sh": {
+        "sha256": "a7c9bd9754e377f5c8f018049a2a5cfd032996bbd60355d6fcfae7f4c8cf3c9f",
+        "matches_recorded": true
+      },
+      "observability/personal/db-test/pulses.sh": {
+        "sha256": "e24cb98f031064f05682afd96eb54b596b3bc3044f8b8a186d45f275536d77a9",
+        "matches_recorded": true
+      },
+      "observability/personal/db-test/rds-ap-northeast-2-bundle.crt": {
+        "sha256": "913fb5b814f17af79d4c1622584a8d0ceddf5b0d76fe353d0c7d1186cdd6b229",
+        "matches_recorded": true
+      },
+      "observability/personal/sql/db-query-delay.sql": {
+        "sha256": "6537633f6c606f80f0b991948b435415aced5e69b3ca04359baf8d1410ee87f1",
+        "matches_recorded": true
+      },
+      "observability/personal/sql/db-query-cancel-one.sql": {
+        "sha256": "6eaad63bffd1a5c4149fc26f556209c7c1e3da0d036012c74d92990a2db0d24b",
+        "matches_recorded": true
+      }
+    }
+  },
+  "artifact": {
+    "repository": "slash-lab/db-test",
+    "tag": "m2-20261029-highfix2",
+    "manifest_digest": "sha256:82b02a988204e1b463dace5e32b1c5c4155db19ea07e2164e025fc2efc01ba84",
+    "remote_manifest_sha256_matches": true,
+    "config_digest": "sha256:c809b275dcac095d8fcf416bf9d9a2ec7004a7840b66cd88f3a3013daa3b0c4e",
+    "saved_config_matches": true,
+    "layers": [
+      {
+        "digest": "sha256:7b229517ed222597277036d94892173207d01a731ab3a88eeb1de2e963a2c788",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:f2becde3b6f383c4f9437d5ffc9d1e32cef677b0f1f309f1e807806e5d5ca63c",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:c2067bd5d0316f7f4bfe40e1730a4e0bf922ed7dd18af0867b9bc00f19cc329d",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:44012391e08b37f413ac0c0efb1a3dbf4e8c2d23a8948eb7bdb0a711e79f64e2",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:4aaaae0551dd0a9044fa570e0ad3058f76eecc2bc4c3db3f4894a4daf3c698e2",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:e33c8b747784d7a44bd90f943d6c71d038c8163fd5b873632db6802e475593c2",
+        "bytes_match_digest": true
+      },
+      {
+        "digest": "sha256:b0a2704f8d6e248ef2fb3657632b8a0504659eb0b3ba8c46f838877d6963e70f",
+        "bytes_match_digest": true
+      }
+    ],
+    "payload_files_match_tracked_sources": true,
+    "platform": "linux/amd64",
+    "user": "999:999",
+    "os": "Alpine 3.24.3",
+    "psql": "18.6",
+    "gnu_timeout": "9.11",
+    "base_index": "alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+    "provenance_limit": "Tracked recipe/input hashes plus content/history/publication records match; this is not a newly reproduced build or signed supply-chain attestation."
+  },
+  "fresh_local_scan": {
+    "scanner_image": "aquasec/trivy@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c",
+    "scanner_version": "0.76.1",
+    "created_at": "2026-10-30T06:06:03.483321047Z",
+    "db": {
+      "Version": 2,
+      "NextUpdate": "2026-10-31T01:01:11.134359572Z",
+      "UpdatedAt": "2026-10-30T01:01:11.134360213Z",
+      "DownloadedAt": "2026-10-30T06:06:03.372962089Z"
+    },
+    "scanners": [
+      "vuln"
+    ],
+    "input": "exact Docker saved image tar",
+    "result_types": [
+      "alpine"
+    ],
+    "os_packages": 33,
+    "vulnerability_count": 0,
+    "raw_report_sha256": "4b05421d5dff88892ebefbd7cde848008d0514b626d04af8ebf592d6b470229b",
+    "coverage": "Alpine OS packages; no language-specific files detected. Scanner/advisory coverage is not proof of complete security."
+  },
+  "existing_ecr_scan": {
+    "status": "COMPLETE",
+    "completedAt": "2026-10-29T11:02:25+09:00",
+    "sourceUpdatedAt": "2026-10-29T11:02:25+09:00",
+    "counts": {}
+  },
+  "local_function_tests": {
+    "definition": "observability/personal/db-test/tests/test_runner.py at 3c11a99",
+    "original_test_sha256": "98f6a57c87af96d962906b229900d2b8096fd7334f653fb14840ba71bfccffde",
+    "temporary_harness_only_change": "container/network prefix slash-db-runner- to db-image-review-; assertions unchanged",
+    "runs": [
+      {
+        "server_major": 16,
+        "tests": 17,
+        "seconds": 59.36,
+        "result": "passed",
+        "log_sha256": "d7624857edf8aa7f36a30a05f89afc9dd4daf08336d88dbba191e00b69c742ce"
+      },
+      {
+        "server_major": 18,
+        "tests": 17,
+        "seconds": 59.238,
+        "result": "passed",
+        "log_sha256": "864875cf0f22459c4f6e8371e005fdf82c0512c6bfd0651c61e916e80a58d3b8"
+      }
+    ],
+    "total_tests_passed": 34,
+    "coverage": [
+      "delay and rollback without data mutation",
+      "exact blocked query cancelled once",
+      "wrong query/IP/application/role/multiple/zero candidates refused",
+      "target/confirmation/limits/arbitrary arguments rejected",
+      "TLS CA and hostname fail-closed",
+      "libpq target/CA/timeout override refusal",
+      "nonroot readonly no server packages/binaries",
+      "GNU timeout forced kill",
+      "signal before connection/during pulse/between pulses releases sessions/locks"
+    ],
+    "stale_definition_attempt": {
+      "source": "7ec7140 old psql16 contract",
+      "tests": 15,
+      "passed": 14,
+      "failed": 1,
+      "reason": "psql16 version assertion mismatched existing new psql18 image; superseded by latest source tests, not suppressed"
+    }
+  },
+  "cleanup": {
+    "test_containers_remaining": 0,
+    "test_networks_remaining": 0,
+    "checked_prefix": "db-image-review-",
+    "raw_logs_and_image_tar": "private temporary directory, not committed; existing images were preserved"
+  },
+  "boundaries": {
+    "ecr_push": false,
+    "aws_deploy": false,
+    "load_test": false,
+    "aws_db_connection": false,
+    "remote_scan_started": false,
+    "only_synthetic_local_db": true,
+    "credentials_in_evidence": false
+  },
+  "remaining": [
+    "AWS RDS network/secret injection/IAM/ECS task execution untested in this run",
+    "HTTP 500 and CloudWatch Alarm are not proven by local cancel signal",
+    "exact disposable DB identity must be enforced by reviewed Terraform task/network/secret mapping; runner hostname suffix alone does not prove account/instance",
+    "fresh local scan does not update ECR scan timestamp or approve deployment"
+  ]
+}
