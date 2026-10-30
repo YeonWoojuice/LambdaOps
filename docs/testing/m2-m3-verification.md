@@ -136,3 +136,9 @@ Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후
 | 수집 경로 | M2 미연결, SQS 소비 비활성 | 시험 데이터 생성·장애 실행·수집 Lambda 쓰기는 하지 않음 |
 
 [개인정보를 제외한 환경 검증 결과](evidence/2026-10-28-cognito-http-verification.json)에 9개 HTTP 검사와 적용 범위를 기록했다. 무토큰 목록 검사는 기본 도구와 보조 검사에서 한 번씩 실행했다. 기존 사용자별 소유권 모델은 바꾸지 않았으며, 현재 초대 전용 개인 pool의 운영자 읽기 범위를 유지한다. 프런트 로그인·CORS 연결과 실제 Incident 상세 200, 이벤트·DLQ 전체 경로는 별도 검증이다. M3는 In Progress다.
+
+## 2026-10-29 실제 브라우저 Incident 조회 시연 검증
+
+로컬 `http://localhost:8765`의 프런트를 `live` 모드로 실행해 Cognito code+PKCE 로그인을 완료했다. API Gateway의 허용 origin을 이 주소로 한정해 Terraform에서 기존 HTTP API를 **변경 1·생성 0·삭제 0**으로 적용했다. 브라우저의 인증된 화면에서 Aurora DSQL에 저장된 대표 Incident **1건의 목록과 상세**를 확인했다. 목록에는 `1페이지 · 1건`, `ALARM`, `NEW`, `slash-api`가 표시됐고, 상세에는 같은 Incident ID와 Alarm 상태 이력·원본 JSON이 표시됐다. 무토큰 요청은 기존과 같이 401이며 CORS 사전 요청은 204를 반환했다.
+
+조회한 `inc_5465b0e764084c4a837b84cd987ef7bf`는 관리자가 검증용 스크립트로 DSQL에 직접 넣은 **`DEMO` 시험 Incident**다. 원본 JSON에 `DEMO: direct administrator DSQL seed; not a CloudWatch or EventBridge delivery`라고 표시했다. 따라서 이 결과는 **Cognito → 인증된 브라우저 → API Gateway → 조회 Lambda → DSQL**의 목록·상세 읽기 경로를 입증한다. M2 Alarm 전이, EventBridge 전달, SQS 소비, 수집 Lambda의 자동 Incident 생성, CloudWatch 실측 그래프는 검증하지 않았다. M3 전체 Exit Criteria는 계속 In Progress다.

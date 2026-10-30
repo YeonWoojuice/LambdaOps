@@ -144,6 +144,20 @@ variable "enable_http_api" {
   default     = false
 }
 
+variable "http_api_cors_allowed_origin" {
+  description = "Optional exact browser origin for JWT-protected Incident reads; null leaves CORS disabled. HTTPS origins or localhost HTTP only."
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.http_api_cors_allowed_origin == null ? true : can(regex(
+      "^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?$|^http://localhost(:[0-9]{1,5})?$",
+      var.http_api_cors_allowed_origin
+    ))
+    error_message = "http_api_cors_allowed_origin must be one exact HTTPS origin or http://localhost with an optional port, without a path or wildcard."
+  }
+}
+
 variable "dsql_ingest_db_user" {
   description = "Custom DSQL role mapped exclusively to the ingest Lambda IAM role."
   type        = string

@@ -12,13 +12,20 @@ describe("IncidentApiClient", () => {
     })).toThrowError(IncidentApiError);
   });
 
-  it("sends a JWT only in the header and keeps the page token opaque", async () => {
+  it("uses the DSQL page contract and sends a JWT only in the header", async () => {
     let requestedUrl = "";
     let requestedInit: RequestInit | undefined;
     const fetchImpl: typeof fetch = async (url, init) => {
       requestedUrl = String(url);
       requestedInit = init;
-      return Response.json({ items: [demoIncidents[0]], nextToken: "next/cursor+==" });
+      return Response.json({
+        items: [demoIncidents[0]],
+        page: 2,
+        pageSize: 25,
+        totalItems: 26,
+        totalPages: 2,
+        hasNextPage: false,
+      });
     };
     const client = new IncidentApiClient({
       baseUrl,
@@ -26,30 +33,54 @@ describe("IncidentApiClient", () => {
       fetchImpl,
     });
 
-    const page = await client.listIncidents({ limit: 25, nextToken: "opaque/+=?" });
+    const page = await client.listIncidents({ page: 2, pageSize: 25 });
 
     expect(page.items[0].incidentId).toBe(demoIncidents[0].incidentId);
-    expect(page.nextToken).toBe("next/cursor+==");
+    expect(page).toMatchObject({ page: 2, pageSize: 25, totalItems: 26, totalPages: 2, hasNextPage: false });
     const url = new URL(requestedUrl);
     expect(url.pathname).toBe("/incidents");
-    expect(url.searchParams.get("limit")).toBe("25");
-    expect(url.searchParams.get("nextToken")).toBe("opaque/+=?");
+    expect(url.searchParams.get("page")).toBe("2");
+    expect(url.searchParams.get("pageSize")).toBe("25");
+    expect(url.searchParams.has("limit")).toBe(false);
+    expect(url.searchParams.has("nextToken")).toBe(false);
     expect(requestedUrl).not.toContain("secret.jwt");
     expect(new Headers(requestedInit?.headers).get("Authorization")).toBe("Bearer secret.jwt");
     expect(requestedInit?.cache).toBe("no-store");
   });
 
   it("reads the detail and its Alarm state history", async () => {
-    const fetchImpl: typeof fetch = async () => Response.json(demoIncidentDetail);
+    const fetchImpl: typeof fetch = async () => Response.json({
+      ...demoIncidentDetail,
+      requestedIncidentId: demoIncidentDetail.incidentId,
+      redirected: false,
+    });
     const client = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl });
 
     const detail = await client.getIncident(demoIncidentDetail.incidentId);
 
     expect(detail.incidentState).toBe("NEW");
     expect(detail.alarmState).toBe("OK");
+    expect(detail.requestedIncidentId).toBe(demoIncidentDetail.incidentId);
+    expect(detail.redirected).toBe(false);
     expect(detail.stateHistory.map((entry) => entry.state)).toEqual([
       "ALARM", "INSUFFICIENT_DATA", "OK",
     ]);
+  });
+
+  it("preserves a requested ID linked to the canonical Incident", async () => {
+    const requestedIncidentId = "inc_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const fetchImpl: typeof fetch = async () => Response.json({
+      ...demoIncidentDetail,
+      requestedIncidentId,
+      redirected: true,
+    });
+    const client = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl });
+
+    const detail = await client.getIncident(requestedIncidentId);
+
+    expect(detail.requestedIncidentId).toBe(requestedIncidentId);
+    expect(detail.incidentId).toBe(demoIncidentDetail.incidentId);
+    expect(detail.redirected).toBe(true);
   });
 
   it("rejects missing credentials before any network request", async () => {
@@ -71,12 +102,36 @@ describe("IncidentApiClient", () => {
     await expect(client.getIncident(demoIncidentDetail.incidentId)).rejects.toMatchObject({ code, status });
   });
 
-  it("rejects malformed IDs and response shapes", async () => {
-    const fetchImpl: typeof fetch = async () => Response.json({ items: [], nextToken: 123 });
+  it("rejects malformed IDs, page options, and a legacy list response", async () => {
+    const fetchImpl: typeof fetch = async () => Response.json({ items: [], nextToken: null });
     const client = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl });
 
     await expect(client.getIncident("../bad")).rejects.toMatchObject({ code: "invalid_request" });
+    await expect(client.listIncidents({ page: 0 })).rejects.toMatchObject({ code: "invalid_request" });
+    await expect(client.listIncidents({ pageSize: 101 })).rejects.toMatchObject({ code: "invalid_request" });
     await expect(client.listIncidents()).rejects.toMatchObject({ code: "invalid_response" });
     expect(IncidentApiError).toBeDefined();
+  });
+
+  it("rejects inconsistent DSQL pagination and detail ID links", async () => {
+    const listFetch: typeof fetch = async () => Response.json({
+      items: [], page: 1, pageSize: 50, totalItems: 51, totalPages: 2, hasNextPage: false,
+    });
+    const listClient = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl: listFetch });
+    await expect(listClient.listIncidents()).rejects.toMatchObject({ code: "invalid_response" });
+
+    const wrongPageFetch: typeof fetch = async () => Response.json({
+      items: [], page: 2, pageSize: 50, totalItems: 0, totalPages: 0, hasNextPage: false,
+    });
+    const wrongPageClient = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl: wrongPageFetch });
+    await expect(wrongPageClient.listIncidents()).rejects.toMatchObject({ code: "invalid_response" });
+
+    const detailFetch: typeof fetch = async () => Response.json({
+      ...demoIncidentDetail,
+      requestedIncidentId: demoIncidentDetail.incidentId,
+      redirected: true,
+    });
+    const detailClient = new IncidentApiClient({ baseUrl, tokenProvider: () => "valid.jwt", fetchImpl: detailFetch });
+    await expect(detailClient.getIncident(demoIncidentDetail.incidentId)).rejects.toMatchObject({ code: "invalid_response" });
   });
 });
