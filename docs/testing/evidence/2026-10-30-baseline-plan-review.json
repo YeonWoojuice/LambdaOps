@@ -713,6 +713,17 @@
       "original_dirty_working_copy_preserved": true
     },
     "setting_pr": "https://github.com/YeonWoojuice/slash-personal/pull/4",
-    "main_independent_binary_reextraction": "PASS: fresh terraform show -json; 98 create-only actions, PG18.6/flags, same image inputs/allowlist, no retained scope changes; hash/modes/state unchanged verified"
+    "main_independent_binary_reextraction": "PASS: fresh terraform show -json; 98 create-only actions, PG18.6/flags, same image inputs/allowlist, no retained scope changes; hash/modes/state unchanged verified",
+    "ci": {
+      "source_commit": "31e0974b70a2214d7a2c63287877e7b2af7b600e",
+      "workflow_run": "https://github.com/YeonWoojuice/slash-personal/actions/runs/41050044137",
+      "initial_api_job": 124043554982,
+      "initial_result": "569 tests completed, 1 failed: WsSubscriptionStarterTest already-subscribed case, java.net.BindException at line134",
+      "rerun_api_job": 124045340830,
+      "rerun_api_result": "success; BUILD SUCCESSFUL in 1m11s",
+      "latest_jobs_successful": 6,
+      "source_or_tests_changed_for_rerun": false,
+      "limitation": "Transient port bind failure remains historical evidence, not a repaired test harness or AWS runtime validation"
+    }
   }
 }

@@ -36,7 +36,7 @@ Private artifact: `/private/tmp/slash-predeploy-20261030/baseline.tfplan`; SHA-2
 
 ### Source-backed final plan and setting PR
 
-The approved three-setting change is now in [Slash PR #4](https://github.com/YeonWoojuice/slash-personal/pull/4), commit `31e0974b70a2214d7a2c63287877e7b2af7b600e` (only those settings plus the existing README). Format/validate and **35 infrastructure tests** pass; CI is reported on that PR. The source branch and PR are prepared; **merge is not authorized yet**.
+The approved three-setting change is now in [Slash PR #4](https://github.com/YeonWoojuice/slash-personal/pull/4), commit `31e0974b70a2214d7a2c63287877e7b2af7b600e` (only those settings plus the existing README). Format/validate and **35 infrastructure tests** pass. Slash CI now has **six successful jobs**. The initial API run reported 569 tests with one WebSocket `BindException` at `WsSubscriptionStarterTest.java:134`; a single rerun succeeded without changing source or tests. This is recorded as a transient test-port failure, not a repaired harness or AWS runtime success. The source branch and PR are prepared; **merge is not authorized yet**.
 
 A new source-backed saved plan uses the **actual canonical local state**, not a copied state: `98 create / 0 update / 0 destroy`, two contract checks pass. PG18.6 and both false upgrade flags are known plan values. Image inputs and 98-address allowlist are unchanged. Main independently re-extracted the binary with `terraform show -json`, checked its actions and DB fields, and rechecked plan/state hashes. The earlier independent re-extraction failure applies only to the older historical plan. Final container definitions still depend on generated secret references and are not runtime-verified.
 
