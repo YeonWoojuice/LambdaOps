@@ -63,7 +63,7 @@ flowchart LR
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | 저장소 공통 에이전트 작업 규칙 |
 | [`docs/architecture/`](docs/architecture/) | 확정 목표와 현재 구현의 차이 |
-| [`docs/contracts/`](docs/contracts/) | Alarm 이벤트와 Incident 조회의 확정 계약 |
+| [`docs/contracts/`](docs/contracts/) | 확정된 Alarm·Incident 계약과 별도로 표시한 M4·M5 및 실측 지표 API 제안 |
 | [`docs/decisions/`](docs/decisions/) | 승인된 기술 결정과 전환 조건 |
 | [`docs/testing/`](docs/testing/) | 코드·AWS 환경 검증 기준과 증거 구분 |
 | [`backend/lambdaops_m3/`](backend/lambdaops_m3/) | 이벤트 계약, Incident 처리·저장, 수집·조회 Lambda |
@@ -109,3 +109,5 @@ M3 기반 자원과 실제 이벤트·사용자 조회 연결을 단계별로 �
 M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 로컬 프런트의 관리자 `DEMO` 목록·상세 조회 성공은 M3 Core 전체의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
 
 확정 아키텍처·계약·기술 결정은 저장소의 `docs/`에서 코드와 함께 버전 관리합니다. 작업·마일스톤·초안·검증 상태는 기존 [LambdaOps 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)에서 관리하고 확정 문서로 연결합니다.
+
+실측 그래프의 [지표 조회 설계](docs/contracts/incident-metrics-api.md)는 **2026-10-30 사용자 승인**을 받았습니다. 선택한 대표 Incident, 기본 60분(-15분/+45분)·최대 6시간, 완료된 60초 구간, 초기 수동 갱신·기존 읽기 scope 재사용과 데이터 상태 구분을 확정했습니다. API 구현·AWS 실측 연결은 아직 없고 요청률·비용·설정 전달·보존과 HTTP 세부안은 후속 검토가 필요합니다. [M4 RCA](docs/contracts/rca-analysis.md), [M5 승인·실행](docs/contracts/recovery-approval.md), [M4·M5 검증 게이트](docs/testing/m4-m5-verification.md)와 해당 Pen 화면은 **사용자 검토 전 초안**입니다. 지표 설계 승인은 M4·M5 계약 확정·PR 병합·AWS 배포 승인이 아닙니다.
