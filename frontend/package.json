@@ -19,7 +19,8 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-is": "19.3.1",
-    "recharts": "3.10.1"
+    "recharts": "3.10.1",
+    "oidc-client-ts": "3.5.0"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

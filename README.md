@@ -17,19 +17,19 @@ flowchart LR
     Read --> DB
 ```
 
-이 그림은 M3의 연결 구조입니다. Terraform의 기본 저장소는 DSQL이며, 2026-10-28 dev 계정 `642935793048`의 서울 리전에 전용 클러스터·Lambda 2개·큐·권한을 생성했습니다. 후속 단계에서 Cognito 보호 HTTP API를 활성화하고 실제 로그인으로 DSQL 빈 목록 200·무토큰 401·권한 없음 403을 확인했습니다. M2 Alarm 연결과 SQS 소비는 아직 비활성입니다. 실제 적용·연결 확인 결과는 [환경 검증 기록](docs/testing/m2-m3-verification.md), 전체 목표는 [아키텍처](docs/architecture/overview.md)를 따릅니다.
+이 그림은 M3의 연결 구조입니다. Terraform의 기본 저장소는 DSQL이며, 2026-10-28 dev 계정 `642935793048`의 서울 리전에 전용 클러스터·Lambda 2개·큐·권한을 생성했습니다. 후속 단계에서 Cognito 보호 HTTP API를 활성화해 빈 목록 200·무토큰 401·권한 없음 403을 확인했고, 2026-10-29에는 로컬 브라우저의 실제 Cognito 로그인·CORS와 관리자 직접 삽입 `DEMO` Incident 1건의 목록·상세 조회를 확인했습니다. M2 Alarm 연결과 SQS 소비는 아직 비활성입니다. 실제 적용·연결 확인 결과는 [환경 검증 기록](docs/testing/m2-m3-verification.md), 전체 목표는 [아키텍처](docs/architecture/overview.md)를 따릅니다.
 
 ## 현재 진행 상태
 
-| 구간 | 코드·기록된 로컬 검증 | AWS 상태 — 2026-10-28 |
+| 구간 | 코드·기록된 로컬 검증 | 기록된 환경 검증 — 2026-10-29까지 |
 | --- | --- | --- |
 | Terraform 상태 저장소 | 암호화·버전 관리 S3와 DynamoDB 잠금 설정 | dev 계정에 생성, 원격 상태 이전 완료 |
 | M2 CloudWatch Alarm | 5xx 비율, 평균 API 지연, 평균 DB 쿼리 지연 Terraform 작성·검증 | 대상 Alarm·M2 상태 파일 없음 확인. 실제 AWS 지표·임계값·Alarm 전이 미검증 |
-| M3 Incident Core | DSQL 저장·조회, 고정 ID·검색·필터·번호 페이지·건수 구현 | 전용 DSQL·Lambda 2개·큐·권한과 JWT 보호 HTTP API 생성. 빈 목록 조회 검증, EventBridge 미연결·SQS 소비 비활성 |
-| 로그인 | 기존 JWT 연결점과 Cognito operator client·읽기 scope 구성 | 시험 사용자 로그인·실제 JWT 발급, 목록 200·무토큰 401·권한 없음 403 확인. 실제 Incident 상세 200은 미검증 |
-| 화면 | 승인된 Cloudscape 그래프 시안과 React·TypeScript 프런트 코드가 있습니다. 화면은 예시 Incident·지표로 동작합니다. | 프런트 배포 없음. 실제 JWT·CORS·CloudWatch 시계열 조회 연결 전 |
+| M3 Incident Core | DSQL 저장·조회, 고정 ID·검색·필터·번호 페이지·건수 구현 | 전용 DSQL·Lambda 2개·큐·권한과 JWT 보호 HTTP API 생성. 빈 목록과 관리자 `DEMO` Incident 목록·상세 조회 검증. EventBridge 미연결·SQS 소비 비활성, 자동 Incident 생성 미검증 |
+| 로그인 | 기존 JWT 연결점과 Cognito operator client·읽기 scope 구성 | 시험 사용자 로그인·실제 JWT 발급, 목록 200·무토큰 401·권한 없음 403 확인. 로컬 브라우저에서 관리자 `DEMO` Incident 상세 200 확인 |
+| 화면 | 승인된 Cloudscape 그래프 시안과 React·TypeScript 프런트 코드가 있습니다. 기본 화면은 예시 Incident·지표로 동작하며, 실데이터용 DSQL 조회·브라우저 PKCE 코드를 준비했습니다. | 프런트 공개 배포 없음. 로컬 `live` 모드의 실제 JWT·CORS·관리자 `DEMO` Incident 목록·상세 확인. CloudWatch 실측 시계열 미검증 |
 
-AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 합니다. 인프라 생성, DB 연결, 실제 이벤트·JWT 검증을 구분하며 M3는 In Progress입니다.
+위 상태는 기록된 Terraform 적용과 환경 검증 결과를 기준으로 하며, AWS 현재 자원을 다시 조회한 결과는 아닙니다. 인프라 생성, DB 연결, 실제 이벤트·JWT 검증을 구분하며 M3는 In Progress입니다.
 
 ## 초기 기술 스택안과 현재 구현
 
@@ -37,7 +37,7 @@ AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 �
 
 | 역할 | 초기 발표안 | 현재 M2·M3 코드와 결정 상태 |
 | --- | --- | --- |
-| 프런트엔드 | React · TypeScript | Cloudscape 화면 구조와 Recharts 시계열의 예시 화면 구현. 실제 인증·지표 조회 연결과 배포는 남아 있음 |
+| 프런트엔드 | React · TypeScript | Cloudscape 화면 구조와 Recharts 시계열의 예시 화면 구현. 로컬 실제 인증·관리자 `DEMO` Incident 조회 확인. 실측 지표 연결과 공개 배포는 남아 있음 |
 | 요청·승인 백엔드 | Java · Spring Boot | 목표 그림은 Lambda Backend; 현재 M3 조회는 Python 3.12 Lambda이며 승인·도구 호출 API와 Spring Boot 코드는 없음 |
 | AI 에이전트 | Bedrock · Strands · AgentCore | 최종 목표로 선택; M3 범위 밖이며 현재 코드·배포 없음 |
 | 이벤트 처리 | EventBridge · SQS · Lambda | 큐·Lambda 배포, 실제 M2 Alarm 연결과 이벤트 전체 경로 검증은 남아 있음 |
@@ -51,7 +51,7 @@ AWS 상태는 이번 Terraform 적용과 실제 자원 조회를 기준으로 �
 
 승인된 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca)의 **3개 테이블·32개 컬럼·10개 인덱스 [생성 SQL](backend/sql/dsql/README.md)**, DSQL 저장·조회 어댑터와 IAM 연결 코드를 작성했습니다. Terraform은 전용 DSQL과 저장·조회 Lambda 권한을 구성하고, [초기화 도구](backend/scripts/dsql-bootstrap.md)는 SQL과 DB 내부 권한을 적용·검사합니다. 로컬 PostgreSQL에서 고정 ID·원자적 저장·동시 수신·조회 일관성을 검증했습니다. EventBridge → SQS → Lambda와 Incident 규칙을 유지하며 Terraform 상태 잠금용 DynamoDB는 별개입니다.
 
-[새 조회 계약](docs/contracts/incident-api.md)은 `page`·`pageSize`, 서비스·환경·상태·기간 필터, 검색·정렬·정확한 건수를 정의합니다. 상세는 이전 ID로 대표를 찾고 요청 ID와 연결 여부를 반환합니다. 조회 주체는 인증된 단일 프로젝트 운영자입니다. 기존 DynamoDB 모드와 프런트는 `limit`·`nextToken`을 유지하므로 공개 API 연결 전 프런트를 새 계약에 맞춰야 합니다. 다음 순서는 **DB·Lambda 연결 확인 → 실제 M2 이벤트·JWT 연결 → 프런트 연동·비용 검증**입니다.
+[새 조회 계약](docs/contracts/incident-api.md)은 `page`·`pageSize`, 서비스·환경·상태·기간 필터, 검색·정렬·정확한 건수를 정의합니다. 상세는 이전 ID로 대표를 찾고 요청 ID와 연결 여부를 반환합니다. 조회 주체는 인증된 단일 프로젝트 운영자입니다. 기존 DynamoDB 모드는 `limit`·`nextToken` 호환 경로로 남아 있습니다. 프런트의 DSQL 조회 클라이언트와 브라우저 로그인·CORS는 로컬 `live` 모드에서 관리자 `DEMO` Incident 목록·상세로 검증했습니다. 다음 순서는 **실제 M2 Alarm → M3 자동 Incident 생성 → 인증된 웹 목록·상세 조회 → 비용 검증**입니다. 직접 삽입한 DEMO의 읽기 성공은 자동 장애 접수 성공이 아닙니다.
 
 선택 이유와 구현 전 확인할 조건은 [Incident DB 결정 기록](docs/decisions/0001-incident-db.md)에 정리합니다. 기존 [Incident 데이터 모델 설계](https://app.notion.com/p/3df91c6807b18154a44fca6a46ba3eca), [M3 Core](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6), [개발 로드맵](https://app.notion.com/p/3ea91c6807b181958727e27c53cf8b0c)은 승인된 논리 설계와 작업 상태를 연결합니다. Spring Boot·Agent 관련 선택은 이번 DB 결정과 별개입니다. Cognito의 생성·검증 상태는 위 표와 환경 검증 기록을 따릅니다.
 
@@ -104,9 +104,9 @@ M3 기반 자원과 실제 이벤트·사용자 조회 연결을 단계별로 �
 1. Slash API·DB의 AWS 시험 실행 방식을 정하고 `LambdaOps/Slash` 집계 지표 5종과 진단 Gauge 1종이 60초마다 발행되는지 확인합니다.
 2. 실제 지표와 트래픽으로 M2의 임계값·최소 요청 수를 정한 뒤 Alarm 3개를 적용하고 `ALARM → OK`를 확인합니다.
 3. 준비된 M2 출력을 Terraform에 연결한 뒤 fixture 재생으로 중복·역순·실패·OK 처리와 실제 장애 전체 경로를 검증합니다.
-4. 검증된 Cognito 로그인·조회 API로 실제 Incident 상세 200을 확인하고, 프런트의 조회 계약과 인증 연결을 전환합니다.
+4. 자동 접수된 Incident를 기존 Cognito 로그인·조회 API와 로컬 `live` 화면으로 조회해 같은 대표 ID의 목록·상세를 대조합니다. 관리자 `DEMO` 조회 성공과 구분해 증거를 남깁니다.
 
-M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 프런트 코드는 별도 예시 화면 단계이며 M3 Core의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
+M2·M3의 AWS 검증이 끝나기 전에는 마일스톤을 완료로 표시하지 않습니다. AI Agent, MCP 분석, Rollback, 서비스 단위 Alarm 병합은 이번 Core 범위에 포함되지 않습니다. 로컬 프런트의 관리자 `DEMO` 목록·상세 조회 성공은 M3 Core 전체의 실환경 Exit Criteria 완료를 뜻하지 않습니다.
 
 확정 아키텍처·계약·기술 결정은 저장소의 `docs/`에서 코드와 함께 버전 관리합니다. 작업·마일스톤·초안·검증 상태는 기존 [LambdaOps 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)에서 관리하고 확정 문서로 연결합니다.
 

@@ -37,3 +37,6 @@ read_package_zip_path   = "REPLACE_WITH_BUILT_READ_ZIP_PATH"
 # Slash web client's openid/email/profile token as a read-scope proof.
 # Real authentication procedure: docs/testing/m2-m3-verification.md and
 # slash-personal/observability/personal/auth/README.md.
+
+# To allow the separate local LambdaOps operator browser at its registered callback origin:
+# http_api_cors_allowed_origin = "http://localhost:8765"

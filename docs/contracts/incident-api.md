@@ -1,6 +1,6 @@
 # M3 Incident 조회 API 계약
 
-상태: **DSQL 저장·조회 코드의 목록·상세 계약** (2026-10-28). dev Terraform은 DSQL을 선택하며 클러스터와 두 Lambda를 생성했다. Cognito 보호 HTTP API를 활성화하고 실제 JWT로 빈 목록 200·무토큰 401·읽기 권한 없음 403을 확인했다. 실제 Incident 상세 200은 아직 검증하지 않았다. 실제 연결 검사와 인증·프런트 검증은 [환경 검증 기록](../testing/m2-m3-verification.md)에서 구분한다. [현재·목표 아키텍처](../architecture/overview.md), [Incident DB 결정](../decisions/0001-incident-db.md).
+상태: **DSQL 저장·조회 코드의 목록·상세 계약** (검증 기록 2026-10-29까지). dev Terraform은 DSQL을 선택하며 클러스터와 두 Lambda를 생성했다. Cognito 보호 HTTP API를 활성화하고 실제 JWT로 빈 목록 200·무토큰 401·읽기 권한 없음 403을 확인했다. 2026-10-29에는 로컬 브라우저에서 실제 Cognito 로그인·CORS와 관리자 직접 삽입 `DEMO` Incident 1건의 목록·상세 200을 확인했다. 이 결과는 읽기 경로의 증거이며 실제 CloudWatch Alarm에 의한 자동 Incident 생성 검증은 아니다. 실제 연결 검사와 인증·프런트 검증은 [환경 검증 기록](../testing/m2-m3-verification.md)에서 구분한다. [현재·목표 아키텍처](../architecture/overview.md), [Incident DB 결정](../decisions/0001-incident-db.md).
 
 ## 적용 범위와 인증
 

@@ -88,6 +88,14 @@ The HTTP API exposes only `GET /incidents` and `GET /incidents/{incidentId}`
 with JWT and the configured read scope (default `incidents:read`). No
 unauthenticated alternative is created. Enabling the API requires a real issuer
 and audience even if storage readiness still prevents creation.
+For a browser on a separate origin, set `http_api_cors_allowed_origin` to one
+exact HTTPS origin or `http://localhost:8765` for the local operator UI. The
+default `null` leaves CORS disabled. When set, API Gateway handles unauthenticated
+OPTIONS preflight and returns CORS headers for the two GET routes; only GET,
+OPTIONS and the `authorization` header are allowed. This does not weaken JWT or
+scope checks on GET. No wildcard origin or credentialed cookie requests are
+configured. Check preflight and authenticated reads in the browser after a
+reviewed apply; Terraform validation alone is not a browser test.
 
 ## Existing DynamoDB deployments
 

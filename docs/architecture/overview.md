@@ -1,6 +1,6 @@
 # LambdaOps 아키텍처: 최종 목표와 현재 구현
 
-확인일: 2026-10-28. 아래 그림은 사용자가 확정한 **최종 목표**입니다. 모든 연결이 이미 구현·배포됐다는 뜻은 아닙니다.
+검증 기록 기준일: 2026-10-29. AWS 현재 자원을 다시 조회한 기록은 아닙니다. 아래 그림은 사용자가 확정한 **최종 목표**입니다. 모든 연결이 이미 구현·배포됐다는 뜻은 아닙니다.
 
 ![사용자가 확정한 LambdaOps 목표 아키텍처](target-architecture.png)
 
@@ -26,9 +26,9 @@ Metric은 집계, Log는 사건 기록, Trace는 실제 계측된 요청 흐름�
 | --- | --- | --- |
 | M1 Slash 관측 시험 | [M1 기록](https://app.notion.com/p/3ea91c6807b1819786b6e515e3a2a6f7)에 로컬 실측이 있습니다. Slash 실행 코드는 이 저장소에 없습니다. | Slash의 현재 AWS 실행 상태는 이번 조사에서 확인하지 못했습니다. |
 | M2 Alarm | [Terraform Alarm 3종](../../infra/modules/m2-alarms/main.tf)은 API 5xx 비율, API 평균 지연, DB 쿼리 평균 지연을 다룹니다. | dev 계정의 대상 Alarm과 M2 상태 파일이 아직 없음을 확인했습니다. 실제 지표·임계값·전이 검증 전이며 [M2](https://app.notion.com/p/3ea91c6807b181e5a12cf833bac129d8)는 In Progress입니다. |
-| M3 접수·Incident | [Python Backend](../../backend/lambdaops_m3/)와 [Terraform](../../infra/modules/m3-core/main.tf)에 EventBridge → SQS → Lambda → **DSQL**, JWT 보호 목록·상세 조회 코드가 있습니다. [테스트](../../backend/tests/)가 핵심 에피소드 규칙을 다룹니다. | 전용 DSQL·Lambda 2개·큐·IAM을 생성했습니다. Cognito 보호 HTTP API를 활성화해 실제 토큰의 빈 목록 200·무토큰 401·scope 없음 403을 확인했습니다. EventBridge·SQS 소비는 비활성이며 전체 전달·실패 재처리·실제 Incident 상세 200은 미검증입니다. [M3](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)는 In Progress입니다. |
-| Incident DB | Terraform은 DSQL을 기본으로 선택하고 두 Lambda에 DSQL 설정을 명시합니다. 승인된 [생성 SQL](../../backend/sql/dsql/README.md), 고정 ID·검색·번호 페이지·건수를 구현했습니다. | 실제 스키마·IAM/DB 권한·Lambda 검사 결과와 남은 분산 충돌·성능·비용 검증은 [환경 검증 기록](../testing/m2-m3-verification.md)을 따릅니다. 프런트 계약 전환은 별도이며 상태 잠금용 DynamoDB도 별개입니다. |
-| Frontend | 승인된 `lambdaops-ui.pen`의 Cloudscape 그래프 시안을 바탕으로 [React·TypeScript 코드](../../frontend/)와 M3 조회 클라이언트가 있습니다. 현재 화면의 지표는 예시 데이터입니다. | 프런트 배포·실제 JWT·브라우저 CORS·CloudWatch 시계열 조회는 아직 없습니다. 예시 그래프를 실측이나 M3 완료로 표시하지 않습니다. |
+| M3 접수·Incident | [Python Backend](../../backend/lambdaops_m3/)와 [Terraform](../../infra/modules/m3-core/main.tf)에 EventBridge → SQS → Lambda → **DSQL**, JWT 보호 목록·상세 조회 코드가 있습니다. [테스트](../../backend/tests/)가 핵심 에피소드 규칙을 다룹니다. | 전용 DSQL·Lambda 2개·큐·IAM을 생성했습니다. Cognito 보호 HTTP API를 활성화해 실제 토큰의 빈 목록 200·무토큰 401·scope 없음 403을 확인했습니다. 2026-10-29 로컬 브라우저에서 실제 Cognito 로그인·CORS와 관리자 직접 삽입 `DEMO` Incident 목록·상세 조회를 확인했습니다. EventBridge·SQS 소비는 비활성이며 자동 Incident 생성·전체 전달·실패 재처리는 미검증입니다. [M3](https://app.notion.com/p/3ea91c6807b1818a988ddba8c22356e6)는 In Progress입니다. |
+| Incident DB | Terraform은 DSQL을 기본으로 선택하고 두 Lambda에 DSQL 설정을 명시합니다. 승인된 [생성 SQL](../../backend/sql/dsql/README.md), 고정 ID·검색·번호 페이지·건수를 구현했습니다. | 실제 스키마·IAM/DB 권한·Lambda 검사 결과와 남은 분산 충돌·성능·비용 검증은 [환경 검증 기록](../testing/m2-m3-verification.md)을 따릅니다. 프런트는 DSQL `page/pageSize` 조회 계약을 사용하며 상태 잠금용 DynamoDB는 별개입니다. |
+| Frontend | 승인된 `lambdaops-ui.pen`의 Cloudscape 그래프 시안을 바탕으로 [React·TypeScript 코드](../../frontend/)와 M3 조회 클라이언트가 있습니다. 현재 화면의 지표는 예시 데이터입니다. | 로컬 `live` 모드에서 실제 JWT·브라우저 CORS·관리자 `DEMO` Incident 목록·상세 조회를 확인했습니다. 프런트 공개 배포와 CloudWatch 실측 시계열 조회는 검증 전입니다. 예시 그래프를 실측이나 M3 완료로 표시하지 않습니다. |
 | M4/M5 분석·복구 | 목표 그림에 AgentCore/Strands, Bedrock 모델 호출, MCP 읽기·실행 도구, 사용자 승인이 있습니다. | 이 저장소에는 구현 코드가 없습니다. [M4](https://app.notion.com/p/3ea91c6807b18121b17cf3b7543f23d3)·[M5](https://app.notion.com/p/3ea91c6807b18115904cf3fe839fae76)는 시작 전입니다. |
 
 ## 변경하면 안 되는 의미
@@ -36,7 +36,7 @@ Metric은 집계, Log는 사건 기록, Trace는 실제 계측된 요청 흐름�
 - CloudWatch **Alarm 에피소드 하나에 목록·건수의 대표 Incident 한 건**을 만듭니다. DSQL 목표에서는 같은 Alarm·에피소드의 이미 발급된 ID를 보존하는 연결 행이 남을 수 있습니다. `monitoring_scope`로 여러 Alarm을 임의 병합하지 않습니다. [이벤트 계약](../contracts/alarm-event.md).
 - `OK`는 해당 Alarm 에피소드 종료입니다. 서비스 전체 복구 증명이나 Incident의 `Resolved` 전환이 아닙니다. `INSUFFICIENT_DATA`도 종료가 아닙니다.
 - 현재 M3 조회 경로는 `GET /incidents`, `GET /incidents/{incidentId}`입니다. [현재 API 계약](../contracts/incident-api.md).
-- 현재 M3 API는 그래프용 시계열을 제공하지 않습니다. 프런트의 예시 그래프를 실제 지표로 바꾸려면 인증된 CloudWatch 지표 조회 계약·백엔드 경로·브라우저 인증과 CORS가 필요합니다.
+- 현재 M3 API는 그래프용 시계열을 제공하지 않습니다. 프런트의 예시 그래프를 실제 지표로 바꾸려면 인증된 CloudWatch 지표 조회 계약·백엔드 경로와 해당 경로의 브라우저 연동 검증이 필요합니다. 기존 Incident 조회의 브라우저 인증·CORS 검증과 구분합니다.
 - 코드 테스트나 Terraform 검증 통과만으로 AWS 배포·전체 흐름 성공을 주장하지 않습니다. [M2/M3 검증 기준](../testing/m2-m3-verification.md).
 
 [기존 Notion 개발 허브](https://app.notion.com/p/3df91c6807b1813daacceeb3d42a93dd)는 계획·마일스톤·초안을 관리합니다. 코드와 테스트는 현재 동작의 근거이고, 저장소의 확정 계약·ADR은 코드와 함께 버전을 관리합니다.

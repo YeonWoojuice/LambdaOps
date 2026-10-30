@@ -219,6 +219,15 @@ This stage does not require M2 to be connected, so authenticated empty-list
 reads can be checked independently. Keep the API disabled until the issuer and
 token are available.
 
+For the local LambdaOps operator browser, set
+`http_api_cors_allowed_origin = "http://localhost:8765"` in the reviewed M3
+environment inputs. The API accepts that exact origin only for GET with the
+`authorization` request header and handles OPTIONS preflight without a JWT;
+actual GET requests still require the configured JWT scope. The default is no
+CORS. This input is a public origin, not a token or client secret. Verify the
+browser's preflight and real list/detail responses after applying the reviewed
+plan; do not infer browser access from a direct CLI request.
+
 ### 2.5. Verify the runtime and full event path
 
 After the relevant stages are enabled, replay EventBridge fixtures into the dev

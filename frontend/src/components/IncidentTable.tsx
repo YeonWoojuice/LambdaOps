@@ -9,6 +9,8 @@ type IncidentTableProps = {
   items: IncidentSummary[];
   onSelect: (incidentId: string) => void;
   title?: string;
+  page?: number;
+  totalItems?: number;
 };
 
 function alarmStatus(state: IncidentSummary['alarmState']) {
@@ -28,7 +30,7 @@ function detectedAt(value: string): string {
   }).format(new Date(value));
 }
 
-export default function IncidentTable({ items, onSelect, title = '최근 Incident' }: IncidentTableProps) {
+export default function IncidentTable({ items, onSelect, title = '최근 Incident', page, totalItems }: IncidentTableProps) {
   return (
     <Table<IncidentSummary>
       className="incident-table"
@@ -36,7 +38,7 @@ export default function IncidentTable({ items, onSelect, title = '최근 Inciden
       trackBy="incidentId"
       stickyHeader
       variant="container"
-      header={<Header variant="h2" description="이 페이지에 표시된 Incident만 집계합니다. 전체 건수는 아직 제공되지 않습니다." actions={<span className="table-page-count">현재 페이지 {items.length}건</span>}>{title}</Header>}
+      header={<Header variant="h2" description={totalItems === undefined ? '현재 화면에 표시된 Incident입니다.' : `전체 ${totalItems}건 중 현재 페이지 ${items.length}건입니다.`} actions={<span className="table-page-count">{page === undefined ? `현재 ${items.length}건` : `${page}페이지 · ${items.length}건`}</span>}>{title}</Header>}
       columnDefinitions={[
         {
           id: 'alarm',

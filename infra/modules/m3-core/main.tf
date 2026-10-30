@@ -368,7 +368,19 @@ resource "aws_apigatewayv2_api" "incidents" {
   count         = local.http_api_active ? 1 : 0
   name          = "${local.name_prefix}-api"
   protocol_type = "HTTP"
-  tags          = var.tags
+
+  dynamic "cors_configuration" {
+    for_each = var.http_api_cors_allowed_origin == null ? [] : [var.http_api_cors_allowed_origin]
+    content {
+      allow_origins     = [cors_configuration.value]
+      allow_methods     = ["GET", "OPTIONS"]
+      allow_headers     = ["authorization"]
+      allow_credentials = false
+      max_age           = 300
+    }
+  }
+
+  tags = var.tags
 }
 
 resource "aws_apigatewayv2_authorizer" "jwt" {

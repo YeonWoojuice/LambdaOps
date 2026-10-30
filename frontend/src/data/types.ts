@@ -25,12 +25,19 @@ export interface AlarmStateHistoryEntry {
 }
 
 export interface IncidentDetail extends IncidentSummary {
+  /** Present in live DSQL responses; demo records predate the DSQL ID-link contract. */
+  requestedIncidentId?: string;
+  redirected?: boolean;
   stateHistory: AlarmStateHistoryEntry[];
 }
 
 export interface IncidentListResponse {
   items: IncidentSummary[];
-  nextToken: string | null;
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
 }
 
 export type MetricKey = "errorRate" | "apiLatency" | "dbLatency";
