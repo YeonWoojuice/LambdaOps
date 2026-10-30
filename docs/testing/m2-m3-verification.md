@@ -259,3 +259,13 @@ M2 numeric thresholds still require actual observations. This does not complete 
 PR #9 is merged at `a3b6ba7`. The [updated proposal](../../infra/environments/dev/README.md#final-predeployment-proposal--2026-10-30) recommends PG18.6 with explicit upgrade policy, an attended five-hour lifecycle, bounded manual normal checks and a $5 incremental allowance. These are pending user decisions; no AWS deployment, image publication, load/fault test or M4/M5 acceptance has occurred. Prior default-PG plan remains historical evidence, not proof of a fixed version.
 
 After acceptance the implementation agent must commit the small Slash source change through its PR, replan against canonical state with current /32 and approved schedule, and request separate AWS execution approval. A private override candidate does not replace the source-backed final plan. Post-apply cleanup requires a fresh destroy plan and actual approval; the user must be available for that review before the experiment starts.
+
+
+### Subsequent user approval — settings and schedule only
+
+The user accepted PostgreSQL18.6 and its proposed upgrade flags, **2026-10-31 13:00–18:00 KST**, and **$5**. Preparation of the Slash setting PR and final source-backed plan is authorized. This supersedes the pending-decision wording above only for those choices. AWS deployment/normal-check execution, image publication, load/fault testing, actual cleanup execution and M4/M5 acceptance remain separately gated. Historical private-override plans retain their original unapproved-candidate timestamps and must not be applied.
+
+
+### Approved settings reflected in source-backed plan
+
+[Slash PR #4](https://github.com/YeonWoojuice/slash-personal/pull/4) implements only the approved RDS settings plus README. The source-backed plan uses the actual canonical local state with explicit locking and has **98 create / 0 update / 0 destroy**, PG18.6 and both upgrade flags false. Format/validate and 35 infrastructure tests pass. Main independently re-extracted the binary and checked actions/DB fields/hashes; canonical state is unchanged. See `source_backed_final_review` in the [evidence](evidence/2026-10-30-baseline-plan-review.json). PR merge and AWS execution remain unapproved. Execution-day preflight and a fresh plan for changed inputs/state are still required; no runtime or M2/M3 completion is claimed.

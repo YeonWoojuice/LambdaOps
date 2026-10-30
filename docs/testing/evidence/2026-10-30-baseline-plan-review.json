@@ -511,5 +511,208 @@
     "state_policy": "Private copied-state review only; source PR and fresh canonical-state plan required before deployment approval",
     "images_and_98_address_allowlist_unchanged": true,
     "container_definition_limit": "Rendered container definitions unknown until secret references resolve; source templates and image inputs reviewed, not runtime verified"
+  },
+  "latest_user_approval": {
+    "scope": [
+      "PostgreSQL18.6 exact pin",
+      "auto_minor_version_upgrade=false",
+      "allow_major_version_upgrade=false",
+      "Setting PR and final plan preparation",
+      "2026-10-31 13:00–18:00 KST availability",
+      "USD5 incremental allowance / five-hour lifecycle"
+    ],
+    "aws_execution_approved": false,
+    "image_publication_approved": false,
+    "load_fault_testing_approved": false,
+    "m4_m5_accepted": false,
+    "historical_candidate_records_preserved": true
+  },
+  "source_backed_final_review": {
+    "status": "SOURCE_BACKED_CANONICAL_STATE_PLAN_SAVED_NO_APPLY",
+    "reviewed_at_utc": "2026-10-30T11:43:15.508356+00:00",
+    "source_repository": "YeonWoojuice/slash-personal",
+    "source_commit": "31e0974b70a2214d7a2c63287877e7b2af7b600e",
+    "account_id": "642935793048",
+    "region": "ap-northeast-2",
+    "terraform_version": "1.5.7",
+    "provider_versions": {
+      "aws": "6.66.0",
+      "random": "3.9.1"
+    },
+    "backend": {
+      "kind": "local",
+      "canonical_state_path": "/Users/juyeonu/Documents/my_project/slash-personal/infra/personal/experiment/terraform.tfstate",
+      "planning_execution_root": "/Users/juyeonu/Documents/Codex/2026-10-28/referenced-chatgpt-conversation-this-is-an-2/work/slash-pg18-final/infra/personal/experiment",
+      "uses_separate_protected_copy": false,
+      "canonical_state_resource_count": 0,
+      "canonical_state_sha256_before": "d96d0b94711711976c15211b5037ce6334d68230d8bc76ad71187a28c1e992af",
+      "canonical_state_sha256_after": "d96d0b94711711976c15211b5037ce6334d68230d8bc76ad71187a28c1e992af",
+      "canonical_state_unchanged": true,
+      "explicit_plan_state_option": "/Users/juyeonu/Documents/my_project/slash-personal/infra/personal/experiment/terraform.tfstate",
+      "lock_requested": true,
+      "lock_timeout_seconds": 30,
+      "plan_exit_code": 0,
+      "lock_info_left_after_plan": false,
+      "worktree_default_state_created": false,
+      "apply_authorized": false,
+      "apply_state_management": "After separate AWS approval and preflight recheck, use the same source commit and explicit local-backend -state=ABSOLUTE_CANONICAL_STATE option for apply too. Do not assume the state CLI option automatically carries over from plan. Retain resulting state/backups at that canonical path, confirm nonzero state inventory there and no new default worktree terraform.tfstate. Never run two managers concurrently."
+    },
+    "plan": {
+      "timestamp_utc": "2026-10-30T11:42:37Z",
+      "creates": 98,
+      "updates": 0,
+      "deletes": 0,
+      "aws_declarations": 95,
+      "support_declarations": 3,
+      "sha256": "9653b379d4f52932ede785b2f3db298abce01e66b4abb280aa351210b39f2b4d",
+      "all_checks_pass": true,
+      "counts_by_type": {
+        "aws_api_gateway_deployment": 1,
+        "aws_api_gateway_gateway_response": 2,
+        "aws_api_gateway_integration": 4,
+        "aws_api_gateway_method": 4,
+        "aws_api_gateway_method_settings": 1,
+        "aws_api_gateway_resource": 5,
+        "aws_api_gateway_rest_api": 1,
+        "aws_api_gateway_rest_api_policy": 1,
+        "aws_api_gateway_stage": 1,
+        "aws_apigatewayv2_vpc_link": 1,
+        "aws_cloudwatch_log_group": 1,
+        "aws_db_instance": 1,
+        "aws_db_subnet_group": 1,
+        "aws_ecs_cluster": 1,
+        "aws_ecs_service": 2,
+        "aws_ecs_task_definition": 2,
+        "aws_elasticache_replication_group": 1,
+        "aws_elasticache_subnet_group": 1,
+        "aws_iam_role": 6,
+        "aws_iam_role_policy": 3,
+        "aws_iam_role_policy_attachment": 3,
+        "aws_internet_gateway": 1,
+        "aws_lb": 1,
+        "aws_lb_listener": 1,
+        "aws_lb_listener_rule": 5,
+        "aws_lb_target_group": 2,
+        "aws_route": 1,
+        "aws_route_table": 1,
+        "aws_route_table_association": 2,
+        "aws_secretsmanager_secret": 2,
+        "aws_secretsmanager_secret_version": 2,
+        "aws_security_group": 7,
+        "aws_service_discovery_private_dns_namespace": 1,
+        "aws_service_discovery_service": 2,
+        "aws_subnet": 4,
+        "aws_vpc": 1,
+        "aws_vpc_security_group_egress_rule": 11,
+        "aws_vpc_security_group_ingress_rule": 8,
+        "random_password": 2,
+        "terraform_data": 1
+      },
+      "difference_from_historical_97": "Dedicated aws_api_gateway_rest_api_policy.test now accounts for the resource-policy declaration separately.",
+      "candidate_configuration_only": false,
+      "source_backed_configuration": true
+    },
+    "runtime": {
+      "api": {
+        "tasks": 1,
+        "vcpu": 1,
+        "memory_gib": 3
+      },
+      "monitoring": {
+        "tasks": 1,
+        "vcpu": 1,
+        "memory_gib": 2
+      },
+      "db": {
+        "engine": "postgres",
+        "planned_engine_version": "18.6",
+        "observed_regional_default": "18.3",
+        "observed_default_status": "available",
+        "instance_class": "db.t4g.small",
+        "storage_gb": 20,
+        "storage_type": "gp3",
+        "publicly_accessible": false,
+        "multi_az": false,
+        "backup_retention_days": 0,
+        "skip_final_snapshot": true,
+        "deletion_protection": false,
+        "auto_minor_version_upgrade": false,
+        "allow_major_version_upgrade": false,
+        "version_choice_approved": true
+      },
+      "cache": {
+        "engine": "valkey",
+        "version": "8.0",
+        "instance_class": "cache.t4g.micro"
+      },
+      "cloudwatch_log_retention_days": 1
+    },
+    "expiry": {
+      "review_only_tag_utc": "2026-10-31T09:00:00Z",
+      "actual_schedule_approved": true,
+      "automatic_deletion": false,
+      "refresh_before_apply": [
+        "User-approved start/end and budget",
+        "Current tester IPv4 /32",
+        "Default profile account/region",
+        "Current source and providers",
+        "ECR digests and verification evidence",
+        "Current state and drift",
+        "RDS default version or separately approved explicit version pin",
+        "Recreate saved plan after any input/state/source change or delayed execution"
+      ],
+      "review_only_tag_kst": "2026-10-31T18:00:00+09:00",
+      "approval_required": "Preparation settings/window/budget approved. AWS apply, image publication, load/fault tests, actual cleanup and M4/M5 contracts remain separately gated. Recheck current IP/account/source/state before execution and replan on changes."
+    },
+    "private_artifacts": {
+      "baseline.tfvars.json": {
+        "sha256": "716b422d13e6b21fd6718b27488651cc3a61ff4f64b92078c25f512f04b162b2",
+        "mode": "0o600"
+      },
+      "prometheus-contract.tfvars.json": {
+        "sha256": "349e96d1586db188e34b48b4829d83538885871098c39cf238dd7af946084c8a",
+        "mode": "0o600"
+      },
+      "baseline.tfplan": {
+        "sha256": "9653b379d4f52932ede785b2f3db298abce01e66b4abb280aa351210b39f2b4d",
+        "mode": "0o600"
+      }
+    },
+    "approved_preparation_scope": {
+      "postgresql_exact_version": "18.6",
+      "auto_minor_version_upgrade": false,
+      "allow_major_version_upgrade": false,
+      "window_start_kst": "2026-10-31T13:00:00+09:00",
+      "window_end_kst": "2026-10-31T18:00:00+09:00",
+      "end_time_not_extended_for_late_start": true,
+      "incremental_budget_usd": 5,
+      "deployment_approved": false,
+      "publication_approved": false,
+      "load_fault_tests_approved": false,
+      "cleanup_execution_approved": false,
+      "m4_m5_accepted": false
+    },
+    "source_configuration": {
+      "infra/personal/experiment/main.tf.json_sha256": "0331cf3fce8f5f22e1fab046ddcb5bed2374ff831d589b2ba9ba9a5fcef6c350",
+      "override_file_used": false,
+      "image_digest_inputs_unchanged": true,
+      "rendered_task_container_definitions": "Unknown until generated resource references resolve; source/template and exact image input verified, not runtime."
+    },
+    "validation": {
+      "terraform_fmt": "PASS",
+      "infrastructure_unittests": {
+        "passed": 35
+      },
+      "terraform_init": "PASS",
+      "terraform_validate": "PASS",
+      "saved_plan": "PASS",
+      "checks_passed": 2,
+      "address_allowlist_unchanged": true,
+      "diff_check": "PASS",
+      "new_default_worktree_state_absent": true,
+      "original_dirty_working_copy_preserved": true
+    },
+    "setting_pr": "https://github.com/YeonWoojuice/slash-personal/pull/4",
+    "main_independent_binary_reextraction": "PASS: fresh terraform show -json; 98 create-only actions, PG18.6/flags, same image inputs/allowlist, no retained scope changes; hash/modes/state unchanged verified"
   }
 }

@@ -2,11 +2,11 @@
 
 ## Final predeployment proposal — 2026-10-30
 
-PR #9 is merged at `a3b6ba7`. **This is a proposal for approval; no deployment, image publication or load/fault test has occurred.** This section supersedes the older candidate’s unknown DB-version recommendation and schedule assumptions, while retaining its evidence. M4/M5 contracts remain drafts.
+PR #9 is merged at `a3b6ba7`. **User approved PG18.6 and its proposed upgrade flags, 2026-10-31 13:00–18:00 KST, and the $5 incremental budget. AWS deployment, image publication, load/fault testing and M4/M5 acceptance remain unapproved; none has occurred.** This section supersedes the older candidate’s unknown DB-version recommendation and schedule assumptions, while retaining its evidence. M4/M5 contracts remain drafts.
 
-### PostgreSQL version decision proposal
+### Approved PostgreSQL configuration
 
-Recommend **PostgreSQL 18.6**, explicitly pinned, instead of an apply-time regional default. Read-only RDS checks in account `642935793048`, `ap-northeast-2` found both 18.3 and **18.6 available** and orderable on `db.t4g.small` with gp3 minimum 20 GB. The latest Slash source `eaabdd73e681fa3a05a095bfc647e7c4ed331e81` records Boot4/jOOQ/Flyway local PostgreSQL 18.6 image execution and PG16/PG18 regression results (`infra/personal/README.md:308–314`). These historical local checks do not prove the upcoming RDS deployment.
+User accepted **PostgreSQL 18.6**, explicitly pinned, instead of an apply-time regional default. Read-only RDS checks in account `642935793048`, `ap-northeast-2` found both 18.3 and **18.6 available** and orderable on `db.t4g.small` with gp3 minimum 20 GB. The latest Slash source `eaabdd73e681fa3a05a095bfc647e7c4ed331e81` records Boot4/jOOQ/Flyway local PostgreSQL 18.6 image execution and PG16/PG18 regression results (`infra/personal/README.md:308–314`). These historical local checks do not prove the upcoming RDS deployment.
 
 | Option | Assessment |
 | --- | --- |
@@ -24,7 +24,7 @@ Proposed values for Slash `infra/personal/experiment/main.tf.json`, `aws_db_inst
 }
 ```
 
-These are **not yet committed to the Slash implementation**. Candidate planning may use a private override with exactly these three values; it is not a source change or deployment authorization. After the user accepts the proposal, the implementation agent must make the reviewed source change through its PR, then create a new plan against the canonical state. This is a short experiment policy for reproducibility, not a long-term patch policy. AWS may still require urgent/security/end-of-support upgrades; see [minor upgrades](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.Minor.html) and [upgrade exceptions](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Upgrading.html). Recheck availability immediately before deployment.
+These three values are now approved for the setting PR. The earlier private-override plan remains historical review evidence, not a source change or deployment authorization. The implementation agent prepares the source PR and a new plan against canonical state; PR merge and AWS deployment still need their separate approvals. This is a short experiment policy for reproducibility, not a long-term patch policy. AWS may still require urgent/security/end-of-support upgrades; see [minor upgrades](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.Minor.html) and [upgrade exceptions](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Upgrading.html). Recheck availability immediately before deployment.
 
 API JDBC currently uses `sslmode=require`: encryption is required, but certificate/hostname verification has not been established by this setting. The DB fault runner's `verify-full` is a different client configuration. Do not label the API as verify-full verified; a change to that configuration needs its own implementation/compatibility review. [pgJDBC SSL semantics](https://jdbc.postgresql.org/documentation/ssl/).
 
@@ -32,13 +32,25 @@ API JDBC currently uses `sslmode=require`: encryption is required, but certifica
 
 [Candidate evidence](../../../docs/testing/evidence/2026-10-30-baseline-plan-review.json) (`final_predeploy_candidate`) records a new actual saved plan with the private override: **98 create / 0 update / 0 destroy**, two contract checks pass. Engine **18.6**, minor automatic upgrade **false**, and major upgrade permission **false** are now known values in this candidate plan. Image digest inputs and all 98 creation addresses match the prior review. Current tester /32 was rechecked and retained privately. Original source, original state and earlier plans remain unchanged.
 
-Private artifact: `/private/tmp/slash-predeploy-20261030/baseline.tfplan`; SHA-256 `8b7de3b12d7fd77aec74979fedf1f2df22cd2b1de6bc60d43bf2aa8eb5df9489`. Parent directory 700 and inputs/plans 600. Expiry `2026-10-31T09:00:00Z` (18:00 KST) is an unapproved candidate tag. This copied-state/private-override plan must not be applied. The final source-backed canonical-state plan is still required after the configuration proposal is accepted. Generated-secret references leave final container definitions unknown at planning time; image inputs and source templates were reviewed, not an actual running container.
+Private artifact: `/private/tmp/slash-predeploy-20261030/baseline.tfplan`; SHA-256 `8b7de3b12d7fd77aec74979fedf1f2df22cd2b1de6bc60d43bf2aa8eb5df9489`. Parent directory 700 and inputs/plans 600. Expiry `2026-10-31T09:00:00Z` (18:00 KST) is an unapproved candidate tag. This copied-state/private-override plan must not be applied. The final source-backed canonical-state plan is still required after the approved configuration is reflected in source. Generated-secret references leave final container definitions unknown at planning time; image inputs and source templates were reviewed, not an actual running container.
+
+### Source-backed final plan and setting PR
+
+The approved three-setting change is now in [Slash PR #4](https://github.com/YeonWoojuice/slash-personal/pull/4), commit `31e0974b70a2214d7a2c63287877e7b2af7b600e` (only those settings plus the existing README). Format/validate and **35 infrastructure tests** pass; CI is reported on that PR. The source branch and PR are prepared; **merge is not authorized yet**.
+
+A new source-backed saved plan uses the **actual canonical local state**, not a copied state: `98 create / 0 update / 0 destroy`, two contract checks pass. PG18.6 and both false upgrade flags are known plan values. Image inputs and 98-address allowlist are unchanged. Main independently re-extracted the binary with `terraform show -json`, checked its actions and DB fields, and rechecked plan/state hashes. The earlier independent re-extraction failure applies only to the older historical plan. Final container definitions still depend on generated secret references and are not runtime-verified.
+
+Artifact: `/private/tmp/slash-final-20261031-approval/baseline.tfplan`; SHA-256 `9653b379d4f52932ede785b2f3db298abce01e66b4abb280aa351210b39f2b4d`. Directory 700; inputs/plan/logs 600. Plan used explicit `-state=/Users/juyeonu/Documents/my_project/slash-personal/infra/personal/experiment/terraform.tfstate`, `-lock=true`, `-lock-timeout=30s`. Canonical state is still empty and its before/after hashes match; no leftover lock or default worktree state was created.
+
+State-path choice must remain explicit for a future authorized apply too: **do not assume a plan command's CLI state flag automatically carries over**. Use the reviewed source and same absolute canonical state path, keep state/backups there, and verify that the resulting managed inventory is stored there rather than in a new worktree default state. No parallel state manager is permitted. Do not expose raw state/plan or credentials.
+
+This final review is preparation, not deployment approval. Before 10/31 execution: merge only with user PR approval, confirm the source tree remains identical to the reviewed commit, recheck current /32/account/provider/state/digests/PG availability/rates, and recreate the plan if any input/state/configuration differs. Re-present the exact plan hash/actions for separate AWS deployment/normal-check approval. The approved expiry is 10/31 18:00 KST; it is still a tag, not an automatic deletion task.
 
 ### Execution window proposal and bounded normal checks
 
-**T0 is the start of user-approved creation, not the time this document is written.** A concrete candidate is **2026-10-31 (Sat) 13:00–18:00 KST**, subject to the user and implementation agent being available. If another date/time is selected, shift the whole window and regenerate expiry/input/plan; do not shorten cleanup time or silently use today's old expiry. No timer, automatic monitoring or automatic deletion has been installed.
+**T0 is the start of separately approved AWS creation, not the time this document is written.** The user confirmed availability for **2026-10-31 (Sat) 13:00–18:00 KST**. This confirms scheduling, not AWS execution. Confirm the implementation agent is also available and recheck the user's cleanup-review availability before starting. If the window changes, shift it explicitly and regenerate expiry/input/plan; do not shorten cleanup time or silently use today's old expiry. The approved hard deadline is **18:00 KST (09:00 UTC)**: a late start does not automatically shift it to T0+5h. Reassess remaining provisioning/check/cleanup buffers and get a revised schedule approved if needed. No timer, automatic monitoring or automatic deletion has been installed; the user should resume the execution chat at **12:30 KST** for the preflight/approval, rather than expect automatic startup.
 
-| Relative time | Candidate KST | Work / stop gate |
+| Relative time | Approved window KST | Work / stop gate |
 | --- | --- | --- |
 | T0 −30 to 0 min | 12:30–13:00 | Confirm source/provider hashes, account, current /32, ECR digests, PG18.6 availability, canonical state and exclusive state access. Review a fresh plan and get explicit AWS execution approval |
 | T0 to +60 | 13:00–14:00 | Create approved environment. If startup is not ready by +60, stop extending the experiment and report failure/cleanup plan |
@@ -55,7 +67,7 @@ Twenty low-rate normal requests are a minimum observation proposal, not an M2 th
 
 ### Budget, stop conditions and cleanup approval availability
 
-Keep the proposed **$5 incremental allowance / at most 5 hours from creation to verified cleanup**. Same-day Price List inputs and unchanged instance/storage/task sizes give $1.41–2.14 baseline, approximately **$2.94** with $0.75 CPU-credit and $0.05 partial-hour allowances. The remaining approximately $2.06 is contingency, not permission for more tests. Existing Cognito/ECR/LambdaOps/DSQL, tax/FX and extra redeployment/load/faults are excluded. The candidate PG minor change does not itself alter the instance/storage price assumptions.
+User approved the **$5 incremental allowance / at most 5 hours from creation to verified cleanup**, for the scheduled window. This does not authorize chargeable resource creation. Same-day Price List inputs and unchanged instance/storage/task sizes give $1.41–2.14 baseline, approximately **$2.94** with $0.75 CPU-credit and $0.05 partial-hour allowances. The remaining approximately $2.06 is contingency, not permission for more tests. Existing Cognito/ECR/LambdaOps/DSQL, tax/FX and extra redeployment/load/faults are excluded. The candidate PG minor change does not itself alter the instance/storage price assumptions.
 
 Cost controls are manual: at T0 and every 30 minutes, estimate cost through planned cleanup from actual live resource/task counts, elapsed time, logs/transfer and remaining duration. Recheck these 2026-10-30 unit rates and the actual specification on the selected execution day. Billing data can lag. At a **$3 projected total**, stop adding checks and review cleanup; if the forecast exceeds $5 or cannot be bounded, stop new work and notify the user immediately. This does not create an AWS Budget or a hard spending cap. Retained resources after cleanup failures can continue costing money.
 
@@ -63,15 +75,15 @@ Stop new checks on unexpected 5xx, a request over the existing 2s criterion, rep
 
 Synthetic test data only: current RDS setup has no final snapshot/backup, cache no snapshot, and secret recovery zero. Actual deletion needs the applicable separate approval with these irreversible effects visible. The new destroy plan must exclude foundation Cognito/ECR and LambdaOps DSQL/API/Lambda/SQS; verify both state and live resources afterward. No state deletion may substitute for cleanup.
 
-### Decisions before implementation and AWS execution
+### Remaining execution gates
 
-1. User accepts or revises PostgreSQL **18.6 / minor automatic upgrade false / major upgrade false** proposal.
-2. User selects an attended window (candidate above or another date) and accepts/revises the **$5 / 5-hour** proposal.
+1. **Approved:** PostgreSQL **18.6 / minor automatic upgrade false / major upgrade false** setting PR preparation.
+2. **Approved:** October 31 **13:00–18:00 KST**, **$5 / five-hour lifecycle**. Reconfirm attendance before starting; execution remains separately gated.
 3. Implementation agent submits the small Slash source/config change through a PR; no image rebuild/publication is needed merely for these RDS settings.
 4. Immediately before execution, confirm canonical local-state ownership/backup and no competing Terraform operation, recheck private /32/identity/digests/versions, and regenerate a complete plan. Compare all actions and hashes; unexpected changes require review.
 5. Show that final source-backed plan and receive **separate AWS deployment plus bounded normal-check approval**. Load/fault testing, image publication, actual cleanup and M4/M5 acceptance remain separate.
 
-The current review plan is not an apply-ready final source artifact. “Final predeployment proposal” describes the reviewed sequence and decisions, not an assertion that all execution gates are closed.
+The source-backed final review supersedes the earlier copied-state candidates. Source PR merge and AWS execution approval, plus execution-day preflight, remain open; “final” does not close those gates.
 
 ## Baseline saved plan review — 2026-10-30 15:43 KST (historical: unpinned DB candidate)
 
