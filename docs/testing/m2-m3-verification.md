@@ -217,3 +217,20 @@ aws sqs get-queue-attributes \
 ```
 
 `receive-message`는 메시지 가시성을 바꾸므로 단순 조회와 다르다. DLQ 본문 확인·redrive·delete·purge는 별도 시험 절차로 승인받고 실행 이력을 남긴다. 토큰은 브라우저의 정상 로그인으로 취급하고 채팅·명령 예시·증거 파일에 붙여 넣지 않는다. 로그·원본 응답을 보존할 때도 비밀값과 개인정보를 먼저 제거한다.
+
+
+## 2026-10-30 current readiness and staged execution plan
+
+PR #6 is merged. [Current read-only evidence](evidence/2026-10-30-aws-readiness.json) and [image/cost review](../../infra/environments/dev/README.md) supersede earlier unknown-current-state notes for the scoped resources only. Current DSQL/Lambda/queues exist, collection is Disabled, M2 Alarm and Slash runtime matches are absent, and last-hour request/query metric points are empty. This is preparation evidence, not M2/M3 completion.
+
+| Stage | Concrete work and required artifact | Gate before proceeding |
+| --- | --- | --- |
+| A. Image readiness | Implementation agent resolves API Java findings, verifies source/build/runtime/config digests, and connects DB highfix2 provenance/function evidence; exact ECR digests and scan timestamps recorded | Reviewed candidates required. Existing Basic scans alone are insufficient. Image changes/publication require their own implementation scope; DB test remains disabled until separately approved |
+| B. Baseline plan | Verify actual target/profile, current inventory, tester IP, runtime composition and secrets references without exposing values. Produce a saved Slash baseline Terraform plan and cleanup plan | Request user AWS approval with plan hash, image digests, start/test-stop/cleanup deadlines and proposed incremental budget. Current proposal: lifecycle <=5h, $5 incremental experiment allowance; no approval implied |
+| C. Approved baseline only | After AWS approval, create the reviewed baseline, confirm authentication/private fault boundary and continuous five-source 60s metrics, record normal samples | No fault/load test is approved by this document. Record actual sample populations and telemetry continuity before choosing thresholds |
+| D. M2 plan | Fill three thresholds and two positive minimum counts using measured samples; produce M2 saved plan, expected initial three Alarms only | User approval for actual apply; unexpected changes/destroy or unmeasured defaults stop progression. No executable M2 plan has been produced yet because current baseline and five numeric inputs are unavailable |
+| E. Fault-test plan | Select bounded private 5xx/API-delay/DB-delay methods with exact targets, rate/concurrency/count, duration and abort thresholds; verify DB tool readiness | Separate user approval for load/fault execution. DB cancel-one or a single failed request does not prove 2-of-3 evaluation periods. If DB tool is not ready, report M2 partial rather than claiming three-Alarm completion |
+| F. M3 plan and test | Wire actual M2 remote-state outputs, recheck DSQL schema/grants/package, review enablement plan; trace actual CloudWatch event through queue/Lambda/DSQL/JWT web and run approved replay/failure cases | Separate apply and test approval as applicable. Keep previous evidence matrix, batch-size limitation and synthetic-vs-real distinction. Each broken hop stops advancement |
+| G. Cleanup and report | Preserve sanitized results, compare reviewed cleanup plan, remove only approved experiment scope, recheck remaining resources and forecast/actual available charges | Do not delete retained LambdaOps/Cognito/ECR/state. End time is cleanup verified, not merely load stopped or ECS desired count zero |
+
+Ready now: scoped AWS inventory, candidate-image gaps, current unit-price estimate and staged test/evidence plan. Still needed before an AWS execution approval request: acceptable API image, DB-tool provenance/test decision, actual baseline and cleanup saved plans, tester IP, named stop/cleanup owner and agreed time/budget. M2 numeric thresholds follow approved baseline measurement; they are not fabricated from historical two-point samples. M4/M5 contracts remain drafts and are not part of these tests.
