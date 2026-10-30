@@ -158,3 +158,62 @@ PR #5의 인증된 DEMO 조회 작업은 사용자 승인으로 main에 병합�
 | 6. 종료 확인 | 증거 보존 후 승인된 experiment 정리·잔여 자원 확인 | 유지할 DSQL·Cognito·상태 저장소를 임의 삭제하지 않음. 정리 완료와 잔존 비용 보고 |
 
 지표 API 구현 인계 시에는 실제 M2 설정 전달 방식, 요청률·동시성·CloudWatch 재시도/비용 한도, 보존 기간 밖 데이터, HTTP/시간 경계 세부안을 먼저 구체화한다. 실제 실측 연결 전에는 예시 그래프를 실측으로 표시하지 않는다.
+
+
+### M3 연결 전 중단 조건과 활성화 확인
+
+다음 항목은 **실행할 준비 절차**다. 이 문서 작성에서는 AWS 조회·연결·시험 메시지 전송을 하지 않았다.
+
+- DSQL 모드의 실제 활성화 식은 `ingestion_enabled && dsql_schema_ready && connect_m2_alarms`다. 일반 저장 모드는 `ingestion_enabled && storage_ready && connect_m2_alarms`이고, `storage_ready = !dsql_enabled || dsql_schema_ready`다. 스키마 준비 플래그는 검증을 대신하지 않는다. 실제 테이블·인덱스 완료, IAM/DB 역할과 수집 쓰기 권한의 확인 근거가 없으면 중단한다.
+- 실제 M2 remote-state `alarm_arns`의 세 ARN, provider의 계정·리전, `service/environment`가 일치해야 한다. placeholder·다른 계정·다른 Alarm·임의 작성 ARN이면 중단한다. [M3 root](../../infra/environments/dev/m3/main.tf)와 [모듈 gate·전달 규칙](../../infra/modules/m3-core/main.tf)을 대조한다.
+- 검토한 plan의 입력 파일·패키지 해시·대상과 적용 직전 값이 다르면 재검토한다. 승인 전 `apply`, 수집 활성화, DB 쓰기, 장애 주입·메시지 전송, 큐 정책 변경·redrive·삭제를 실행하지 않는다. 기존 Cognito·DSQL·상태 저장소 교체/삭제가 포함되면 별도 변경으로 보고한다.
+- [다음 배포 준비](../../infra/environments/dev/README.md)의 예산·시험 IP·종료 시각·정리 대상이 미확정이거나 종료 담당이 없으면 실환경 시험에 착수하지 않는다.
+
+### 실제 Alarm 전이와 합성 재생의 구분
+
+최초 자동 접수 증거는 제한된 Slash 시험에서 발생한 **실제 CloudWatch Alarm 상태 전환**으로 얻는다. EventBridge 이벤트 ID·Alarm ARN·상태 전환 시각부터 SQS message ID·수집 로그·대표 Incident까지 연결한다. AWS 예약 source를 사용한 임의 `PutEvents`나 직접 SQS 전송을 실제 CloudWatch 전달로 표시하지 않는다.
+
+기존 [fixture](../../backend/tests/fixtures/alarm.json)는 계정 `123456789012`, 고정 Alarm ARN·2026-10-08 시각을 쓴다. 실환경에 원본을 그대로 보내지 않는다. 승인된 시험 사본을 준비할 때 `account`, `region`, `resources`, `detail.alarmName`, `time`, 현재/이전 상태의 시각을 같은 대상·상태 사슬로 맞추고 합성 시험임을 기록한다. 이벤트 ID만 바꾸는 것으로 새 전환을 만들 수는 없다. 중복 키는 계정·리전·Alarm ARN·상태·전환 시각이며, 중복 시험에서는 이 값과 본문을 유지한다.
+
+합성 재생은 실제 에피소드와 섞이지 않는 시험 시각·대상 범위를 검토한 뒤 별도 승인한다. 같은 Alarm의 실제 후속 전환과 합성 시각이 충돌하면 중단한다. 실제 이벤트를 그대로 재전달하는 중복 시험과, 상태/시각을 만든 역순 시험을 증거에서 구분한다. 원본·시험 사본·전송 순서를 남기며 승인되지 않은 실제 기록 정리나 seed 재사용으로 건수를 맞추지 않는다.
+
+### M3 시험별 입력·기대 결과·증거
+
+| 시험 | 준비할 입력과 기대 결과 | 보존할 근거 |
+| --- | --- | --- |
+| 실제 자동 접수 | 실제 ALARM 전이 하나에서 대표 Incident 한 건 생성 | Alarm ARN·실제 전환 시각·EventBridge 이벤트 ID·SQS message ID·수집 Lambda 로그·대표 ID·필터된 목록/건수 |
+| 동일 전환 중복 | 동일 중복 키·동일 본문 재전달. 대표 ID와 건수 유지 | 원본/재전달 message ID, `outcome=duplicate`, 전후 API 요약 |
+| 역순·늦은 시작 근거 | 승인된 순서표로 OK/ALARM 등 재생. 최신 상태 역행 없음, 최초 ID 유지 | 입력 사슬과 전송 순서, 각 단계의 상세/요약, 기존 ID의 대표 연결 |
+| INSUFFICIENT_DATA·OK·다음 ALARM | 데이터 부족은 에피소드 종료가 아님. OK로 해당 에피소드 종료, 다음 ALARM은 새 대표 | 실제/합성 구분, 상태 이력·`alarmOkAt`·대표 건수. M3 업무 상태 NEW 유지 |
+| 일시적 처리 실패 | 별도 승인된 시험 실패 후 재시도에서 동일 전환 한 건으로 수렴 | 실패 message ID·시도·재시도 로그·저장 결과. 실패 원인과 성공 시각 |
+| 지속 소비 실패 | 잘못된 이벤트 등 독성 메시지는 성공으로 지우지 않고 소비 DLQ로 이동 | 실패 코드·재시도 횟수·해당 DLQ 식별자/시각·회복/수동 조치 계획 |
+| EventBridge 전달 실패 | 별도 승인된 실패 주입. 소비 실패와 구분 | EventBridge 전달 실패/재시도와 전달 DLQ 근거. 정책 변경·원복 범위 |
+| 인증된 웹 조회 | 자동 접수 대표 ID의 목록·상세, 무토큰 401·읽기 scope 없음 403 | issuer/audience/scope의 비밀값 없는 확인, 응답 상태·같은 ID·이력·CORS. JWT 원문 제외 |
+
+[수집 핸들러](../../backend/lambdaops_m3/ingest_handler.py)는 레코드별 실패를 `batchItemFailures`에 넣고, [SQS 연결](../../infra/modules/m3-core/main.tf)은 `ReportBatchItemFailures`를 설정한다. 기본 `ingest_batch_size=1`이므로 기본 환경의 단일 레코드 시험만으로 **한 배치의 성공/실패 혼합 처리**를 검증했다고 쓰지 않는다. 혼합 배치 시험은 별도 설정 검토와 실제 배치 크기 증거가 필요하다. 대응하는 로컬 기준은 [HandlerTests](../../backend/tests/test_incidents.py)다.
+
+코드상 소비 재시도는 `maxReceiveCount=5`, visibility timeout은 수집 timeout의 6배다. EventBridge 재시도는 최대 24회·이벤트 수명 3,600초이고 두 DLQ의 보존은 14일이다. 시험 전 실제 적용값을 다시 확인하고, 결과 대기 시간과 중단 시각을 그 값에 맞춰 정한다. 단순 큐 건수나 소비 DLQ가 비었다는 사실만으로 처리 성공을 판정하지 않는다.
+
+### 조회 명령 템플릿 — 실행하지 않은 예시
+
+아래는 승인된 대상 확인 후 사용할 조회 예시다. 출력의 대상이 승인 자료와 다르면 진행하지 않는다. `terraform output`은 실제 backend 접근이 필요하며 로컬 설정·상태 전체를 출력하거나 Git에 보관하지 않는다.
+
+```bash
+terraform -chdir=infra/environments/dev/m3 output -json ingestion_active
+terraform -chdir=infra/environments/dev/m3 output -raw ingest_lambda_name
+terraform -chdir=infra/environments/dev/m3 output -raw ingest_queue_url
+terraform -chdir=infra/environments/dev/m3 output -raw eventbridge_dlq_url
+terraform -chdir=infra/environments/dev/m3 output -raw consumer_dlq_url
+```
+
+```bash
+aws lambda list-event-source-mappings \
+  --function-name '<verified-ingest-lambda-name>' \
+  --region '<verified-region>'
+aws sqs get-queue-attributes \
+  --queue-url '<verified-queue-url>' \
+  --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible \
+  --region '<verified-region>'
+```
+
+`receive-message`는 메시지 가시성을 바꾸므로 단순 조회와 다르다. DLQ 본문 확인·redrive·delete·purge는 별도 시험 절차로 승인받고 실행 이력을 남긴다. 토큰은 브라우저의 정상 로그인으로 취급하고 채팅·명령 예시·증거 파일에 붙여 넣지 않는다. 로그·원본 응답을 보존할 때도 비밀값과 개인정보를 먼저 제거한다.
