@@ -142,3 +142,19 @@ Slash 저장소의 `observability/personal/auth/auth.py`는 실제 배포 이후
 로컬 `http://localhost:8765`의 프런트를 `live` 모드로 실행해 Cognito code+PKCE 로그인을 완료했다. API Gateway의 허용 origin을 이 주소로 한정해 Terraform에서 기존 HTTP API를 **변경 1·생성 0·삭제 0**으로 적용했다. 브라우저의 인증된 화면에서 Aurora DSQL에 저장된 대표 Incident **1건의 목록과 상세**를 확인했다. 목록에는 `1페이지 · 1건`, `ALARM`, `NEW`, `slash-api`가 표시됐고, 상세에는 같은 Incident ID와 Alarm 상태 이력·원본 JSON이 표시됐다. 무토큰 요청은 기존과 같이 401이며 CORS 사전 요청은 204를 반환했다.
 
 조회한 `inc_5465b0e764084c4a837b84cd987ef7bf`는 관리자가 검증용 스크립트로 DSQL에 직접 넣은 **`DEMO` 시험 Incident**다. 원본 JSON에 `DEMO: direct administrator DSQL seed; not a CloudWatch or EventBridge delivery`라고 표시했다. 따라서 이 결과는 **Cognito → 인증된 브라우저 → API Gateway → 조회 Lambda → DSQL**의 목록·상세 읽기 경로를 입증한다. M2 Alarm 전이, EventBridge 전달, SQS 소비, 수집 Lambda의 자동 Incident 생성, CloudWatch 실측 그래프는 검증하지 않았다. M3 전체 Exit Criteria는 계속 In Progress다.
+
+
+## 2026-10-30 다음 실환경 검증 착수 인계 — 적용 승인 전
+
+PR #5의 인증된 DEMO 조회 작업은 사용자 승인으로 main에 병합됐다. 지표 화면의 선택 대표 Incident·기본 60분(-15/+45)·최대 6시간·완료된 60초 구간·수동 갱신·기존 읽기 scope 재사용 방향은 승인됐다. [지표 설계와 잔여 구현 결정](../contracts/incident-metrics-api.md)을 따른다. 이 절은 다음 시험의 준비 목록이며 AWS 현재 자원 조회·배포·자동 접수 성공 기록이 아니다. M4·M5 계약은 별도 승인 전이다.
+
+| 순서 | 구현 에이전트가 준비할 내용 | 적용 또는 완료 전 필요한 근거 |
+| --- | --- | --- |
+| 1. 시험 대상 재확인 | 문서상 slash-api/dev·서울 계정의 실제 자원, Slash 저장소 위치·실행 이미지/버전, 기존 DB/Cognito/DSQL 유지 대상 확인 | 현재 상태와 과거 기록 구분. 이번 설계 검토에서는 Slash 코드 및 AWS 최신 상태 미확인 |
+| 2. 배포 승인 자료 | 시험 방식·시험자 IP·시작/종료·예산·생성부터 정리까지 비용·보존 증거·삭제할 experiment 자원과 Terraform plan | 사용자 AWS 적용 승인. expires_at 태그를 자동 삭제 보장으로 취급하지 않음. 10/28 비용 가정은 최신 견적과 구분 |
+| 3. M2 지표·Alarm | 동일 Service/Environment·60초 원본 5개와 실제 DB query timer 확인. 임계값 3개·최소 요청/쿼리 수 2개를 실측으로 결정 | 기본값 없는 M2 필수 입력 5개, Alarm 3종 각각 ALARM→OK 실제 전이. 지표 발행 중단을 정상으로 오해하지 않도록 별도 수집 상태 확인 |
+| 4. M3 연결 | M2 remote-state alarm_arns와 DSQL 스키마/권한 확인. ingestion_enabled·dsql_schema_ready·connect_m2_alarms의 활성화 계획 제시 | 적용 전 별도 승인. 임의 ARN으로 대체하지 않고 실제 출력 사용 |
+| 5. 끝까지 추적 | 같은 전환의 EventBridge→SQS→수집 Lambda→DSQL→인증된 웹 목록·상세를 추적 | 대표 1건·중복/역순·OK/INSUFFICIENT_DATA·실패 재시도/DLQ·최초 ID 보존. DEMO 읽기와 구분 |
+| 6. 종료 확인 | 증거 보존 후 승인된 experiment 정리·잔여 자원 확인 | 유지할 DSQL·Cognito·상태 저장소를 임의 삭제하지 않음. 정리 완료와 잔존 비용 보고 |
+
+지표 API 구현 인계 시에는 실제 M2 설정 전달 방식, 요청률·동시성·CloudWatch 재시도/비용 한도, 보존 기간 밖 데이터, HTTP/시간 경계 세부안을 먼저 구체화한다. 실제 실측 연결 전에는 예시 그래프를 실측으로 표시하지 않는다.
