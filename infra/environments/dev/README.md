@@ -1,5 +1,49 @@
 # LambdaOps dev Terraform roots
 
+## Current AWS and image readiness — 2026-10-30 13:18–13:20 KST
+
+[Read-only evidence](../../../docs/testing/evidence/2026-10-30-aws-readiness.json) records account `642935793048`, Seoul. PR #6 was merged before this follow-up. No deployment, load, DB write, message receive/send or new image scan was executed.
+
+| Observed scope | Current result |
+| --- | --- |
+| LambdaOps DSQL / two Lambda functions / HTTP API | DSQL ACTIVE with deletion protection; Lambda Active, Python 3.12; HTTP API present. DB schema/grants and a fresh JWT request were not tested |
+| Three SQS queues / source mapping | Queues present, approximate visible/inflight counts 0. Consumer Disabled, batch 1, ReportBatchItemFailures enabled |
+| M2 / EventBridge | No metric Alarms named slash/lambdaops; no lambdaops-prefix EventBridge rules |
+| Slash runtime search | ECS clusters 0; slash-named ALB/RDS/ElastiCache and matching running/stopped EC2 0. This is a scoped search, not exhaustive account cleanup proof |
+| CloudWatch | Six metric descriptors remain, but RequestCount/DBQueryCount have no points in the last-hour window in the evidence. Descriptors do not prove current publishing |
+
+### Image selection must be resolved before an execution approval request
+
+ECR results below are **existing 10/28–29 scans queried today**, not new scans. A tag on an OCI index needs the target architecture child digest when checking scan results. Basic OS scanning and Java dependency scanning cover different findings.
+
+| Candidate | Readiness finding |
+| --- | --- |
+| API `m2-20261029-latency1`, digest `f7390b8c…` | ECR Basic counts empty, but repository Java review records Critical 10 / High 41 and blocked status. Do not promote from Basic alone |
+| Local API `m2-20261029-javafix1`, digest `08b0bd91…` | Repository records Critical 2 / High 0 / Medium 2; not ECR-published or promoted. Remaining remediation/review required |
+| DB test `m2-20261029-highfix2`, digest `82b02a98…` | Newer ECR image with empty existing Basic counts; source provenance, function/integration evidence and promotion not connected. Do not silently replace old selection |
+| Old DB test `m2-20261028-highfix1` | Existing child scan still records High 4 / Medium 9 / Low 3 |
+| Prometheus/Grafana `m2-20261028-highfix1` | Existing amd64 child scans complete with empty counts; recheck digest/config/source mapping before execution |
+
+Full candidate digests are in the evidence JSON. Preserve Slash's dirty dashboard and untracked architecture/k6 work. Runtime code, image rebuild/publication and remediation belong to the implementation agent; this review does not authorize those changes or DB-test activation.
+
+### Current cost estimate and proposed approval envelope
+
+The 2026-10-30 13:18:37 KST AWS Price List Query API lookup confirmed Seoul rates: x86 Fargate $0.04656/vCPU-hour + $0.00511/GiB-hour; RDS db.t4g.small $0.051/hour + gp3 $0.131/GB-month; Valkey cache.t4g.micro $0.0192/hour; ALB $0.0225/hour + $0.008/LCU-hour; IPv4 $0.005/address-hour. API 1 vCPU/3 GiB plus monitor 1 vCPU/2 GiB, RDS, cache, ALB and two addresses yield **$0.22137/hour major runtime cost**. This is the proposed baseline composition, not currently running Slash resources.
+
+| Creation through confirmed cleanup | Incremental baseline estimate, USD | Extra allowances / scope |
+| --- | --- | --- |
+| 2 hours total lifecycle | $0.72–1.42 | RDS CPU credits up to $0.30 conservative allowance; partial-hour rounding about $0.05 extra |
+| 5 hours total lifecycle | $1.41–2.14 | RDS CPU credits up to $0.75 conservative allowance; partial-hour rounding about $0.05 extra |
+
+These ranges retain explicit assumptions: 10,000 REST requests, 1 GB paid internet egress, $0.02 cross-AZ allowance, 0.1–1 GB logs and average 0–1 ALB LCU; no parallel replacement tasks. M2's three metric-math Alarms reference two source metrics each: $0.60/month prorated, about $0.00493 with six hours allowed for a five-hour run **only if the Alarms are also removed then**. If M2 Alarms are retained, they continue accruing up to $0.60/month before discounts until deletion, independently of Slash publishing; that ongoing cost is outside the short-run estimate. A separate DB fault task is **not included**. Existing Cognito/ECR/LambdaOps, DSQL usage, tax/FX, extra snapshots/tasks/logs/traffic are excluded. DSQL Seoul rate is $0.00001/DPU and $0.40/GB-month; actual usage was not retrieved, so retained-service total is unknown.
+
+Propose **at most five hours from creation start to confirmed cleanup and a $5 incremental experiment budget**, subject to user approval after image/plan/input review. This is an approval proposal, not an automatic billing cap or a bound on retained services. Stop new test work when time or forecast reaches the approved limit and begin the reviewed cleanup; actual billing may arrive later.
+
+[Fargate](https://aws.amazon.com/fargate/pricing/), [RDS PostgreSQL](https://aws.amazon.com/rds/postgresql/pricing/), [ElastiCache](https://aws.amazon.com/elasticache/pricing/), [ALB](https://aws.amazon.com/elasticloadbalancing/pricing/), [VPC IPv4](https://aws.amazon.com/vpc/pricing/), [CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [DSQL](https://aws.amazon.com/rds/aurora/dsql/pricing/). Linux Fargate minimum is one minute; RDS minimum ten minutes after relevant lifecycle operations; ALB/Valkey partial hours round up. A private hosted zone kept past the 12-hour test exemption adds a non-prorated zone fee; [Route 53](https://aws.amazon.com/route53/pricing/).
+
+The staged execution and required approval artifacts are in the [verification plan](../../../docs/testing/m2-m3-verification.md#2026-10-30-current-readiness-and-staged-execution-plan). The previous preparation sections below remain dated context.
+
+
 ## M2→M3 verification preparation — 2026-10-30, before AWS approval
 
 This preparation reads repository evidence only. Current AWS resources, current prices,

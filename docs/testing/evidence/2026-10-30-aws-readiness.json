@@ -1,0 +1,199 @@
+{
+  "checked_at_utc": "2026-10-30T04:18:00Z/2026-10-30T04:20:00Z",
+  "account": "642935793048",
+  "region": "ap-northeast-2",
+  "access": "read-only AWS CLI; no deploy/load/write/rescan",
+  "inventory": {
+    "dsql": {
+      "status": "ACTIVE",
+      "deletion_protection": true,
+      "schema_and_db_roles_verified": false
+    },
+    "lambdas": {
+      "count": 2,
+      "status": "Active",
+      "runtime": "python3.12",
+      "memory_mib": 256,
+      "timeout_seconds": 30,
+      "same_code_sha256": true
+    },
+    "source_mapping": {
+      "state": "Disabled",
+      "batch_size": 1,
+      "report_batch_item_failures": true
+    },
+    "queues": {
+      "count": 3,
+      "visible_inflight_approximate": 0,
+      "ingest_visibility_seconds": 180,
+      "ingest_retention_days": 4,
+      "max_receive_count": 5,
+      "dlq_retention_days": 14
+    },
+    "eventbridge_lambdaops_prefix_rule_count": 0,
+    "slash_or_lambdaops_metric_alarm_count": 0,
+    "http_api_present": true,
+    "slash_runtime_matches": {
+      "ecs_clusters": 0,
+      "slash_named_alb": 0,
+      "slash_named_rds": 0,
+      "slash_named_elasticache": 0,
+      "slash_project_or_name_ec2_running_stopped": 0
+    },
+    "recent_metrics": {
+      "window_utc": [
+        "2026-10-30T03:19:16Z",
+        "2026-10-30T04:19:16Z"
+      ],
+      "period_seconds": 60,
+      "request_count_points": 0,
+      "db_query_count_points": 0,
+      "namespace_metric_descriptors": 6
+    }
+  },
+  "images": [
+    {
+      "role": "api",
+      "tag": "m2-20261029-latency1",
+      "digest": "sha256:f7390b8c49d1a13398978da95530c98ef4402ecbd4fde383219d7bd674bbe479",
+      "existing_ecr_basic_counts": {},
+      "repo_java_scan": {
+        "critical": 10,
+        "high": 41
+      },
+      "selection": "blocked; Basic scan is not Java dependency clearance",
+      "scan_record_date": "2026-10-29"
+    },
+    {
+      "role": "api_local_remediation",
+      "tag": "m2-20261029-javafix1",
+      "digest": "sha256:08b0bd91a641298d281e6c1746fa0e3b2b0aa2e0d9ec2a067eea6e59243085c2",
+      "repo_java_scan": {
+        "critical": 2,
+        "high": 0,
+        "medium": 2
+      },
+      "ecr_published": false,
+      "selection": "blocked",
+      "scan_record_date": "2026-10-29"
+    },
+    {
+      "role": "db_test_new",
+      "tag": "m2-20261029-highfix2",
+      "digest": "sha256:82b02a988204e1b463dace5e32b1c5c4155db19ea07e2164e025fc2efc01ba84",
+      "existing_ecr_basic_counts": {},
+      "selection": "source and functional evidence unconfirmed",
+      "scan_record_date": "2026-10-29"
+    },
+    {
+      "role": "db_test_old",
+      "tag": "m2-20261028-highfix1",
+      "existing_child_scan_counts": {
+        "high": 4,
+        "medium": 9,
+        "low": 3
+      },
+      "selection": "not approved",
+      "digest": "sha256:e8acbc3f6fa11a6f3d5c1754247737c57ecf554cadd5bb4bf1f619cf4372d321",
+      "scan_record_date": "2026-10-28"
+    },
+    {
+      "role": "prometheus",
+      "tag": "m2-20261028-highfix1",
+      "digest": "sha256:fca63956ad481fde72a8505361de1dc5e1907ca49bcbd3e326336fb918001617",
+      "existing_amd64_child_basic_counts": {},
+      "selection": "recheck source/config binding before deployment",
+      "scan_record_date": "2026-10-28"
+    },
+    {
+      "role": "grafana",
+      "tag": "m2-20261028-highfix1",
+      "digest": "sha256:8b4387da54c607dc01a1210a12f593a65ce7ee675bbe5387d3852a1f0bb811de",
+      "existing_amd64_child_basic_counts": {},
+      "selection": "recheck source/config binding before deployment",
+      "scan_record_date": "2026-10-28"
+    }
+  ],
+  "scan_caveat": "Existing 2026-10-28/29 results read on 2026-10-30; no fresh scans. Push time is not build time. OCI index and amd64 child scan differ.",
+  "cost": {
+    "verified_at_utc": "2026-10-30T04:18:37Z",
+    "source": "AWS Price List Query API, Seoul",
+    "currency": "USD",
+    "fargate_vcpu_hour": 0.04656,
+    "fargate_gib_hour": 0.00511,
+    "rds_t4g_small_hour": 0.051,
+    "rds_gp3_gb_month": 0.131,
+    "valkey_t4g_micro_hour": 0.0192,
+    "alb_hour": 0.0225,
+    "alb_lcu_hour": 0.008,
+    "ipv4_address_hour": 0.005,
+    "main_runtime_hour": 0.22137,
+    "m2_alarm_3x2_metrics_month": 0.6,
+    "dsql_dpu": 1e-05,
+    "dsql_gb_month": 0.4,
+    "lifecycle_2h_estimate": [
+      0.72,
+      1.42
+    ],
+    "lifecycle_5h_estimate": [
+      1.41,
+      2.14
+    ],
+    "rds_cpu_credit_extra_5h_upper_allowance": 0.75,
+    "additional_partial_hour_rounding_allowance": 0.05,
+    "proposed_experiment_budget_not_approved": 5,
+    "exclusions": [
+      "retained Cognito/ECR/LambdaOps/DSQL resources",
+      "DB fault task",
+      "tax/FX",
+      "extra tasks/snapshots/logs/traffic",
+      "unmeasured DSQL usage"
+    ],
+    "estimate_not_bill_or_hard_cap": true,
+    "skus": {
+      "fargate_cpu": "DS579H2QDYXPJDKE",
+      "fargate_memory": "KJE68NNYFF2BQG98",
+      "rds_instance": "UMH398UHTY46K8BK",
+      "rds_gp3": "8TFTRRBWJSP95DQP",
+      "valkey": "JWGV22RACS6825AS",
+      "alb": "VUV9M7PZ543S2SC9",
+      "alb_lcu": "CX4ZBV2SE6F5HJV3",
+      "ipv4": "ZKBHEVDXYBRCKFQ8",
+      "alarm": "PRDBYUGVEHFG9C2J",
+      "dsql_dpu": "54NBQZ6RJ4ZCZG9J",
+      "dsql_storage": "WKBK5ATF9AHZJA5Q"
+    },
+    "alarm_retention_caveat": "Short-run Alarm allowance assumes deletion at test end; retained M2 Alarms continue up to USD 0.60/month before discounts until deleted, regardless of publisher runtime."
+  },
+  "not_verified": [
+    "DSQL schema/DB grants",
+    "new JWT/API behavior",
+    "exhaustive network/log/snapshot inventory",
+    "actual Terraform saved plan",
+    "current API security remediation",
+    "DB highfix2 source/function evidence",
+    "measured M2 threshold inputs"
+  ],
+  "methods": [
+    "sts get-caller-identity",
+    "dsql list/get",
+    "lambda list/config/source-mapping",
+    "sqs list/get-queue-attributes",
+    "events list-rules",
+    "cloudwatch describe-alarms/list-metrics/get-metric-statistics",
+    "ecs/elbv2/rds/ec2/elasticache/apigateway inventory",
+    "ecr describe-images/describe-image-scan-findings/batch-get-image",
+    "pricing get-products"
+  ],
+  "repository_sources": {
+    "slash_local_head": "7ec7140",
+    "files": [
+      "infra/personal/README.md",
+      "docs/observability/results/2026-10-29-api-image-security-review.json",
+      "docs/observability/results/2026-10-29-java-security-remediation.json",
+      "docs/observability/results/2026-10-28-image-publication.json",
+      "docs/observability/results/2026-10-29-baseline-cost-estimate.json"
+    ],
+    "caveat": "Existing repository records, not newly executed image tests"
+  }
+}
