@@ -342,5 +342,174 @@
     "method": "Independent parsing of generated baseline-plan.json; source/API/cleanup review by separate agents",
     "limitation": "Independent binary terraform show re-extraction failed due to local provider execution restrictions; not a second binary extraction",
     "result": "No baseline contract blocker found; deployment gates remain open"
+  },
+  "final_predeploy_candidate": {
+    "status": "CANDIDATE_PG18_6_PLAN_SAVED_NO_APPLY",
+    "reviewed_at_utc": "2026-10-30T07:51:12.581099+00:00",
+    "source_repository": "YeonWoojuice/slash-personal",
+    "source_commit": "eaabdd7",
+    "account_id": "642935793048",
+    "region": "ap-northeast-2",
+    "terraform_version": "1.5.7",
+    "provider_versions": {
+      "aws": "6.66.0",
+      "random": "3.9.1"
+    },
+    "plan": {
+      "timestamp_utc": "2026-10-30T07:50:19Z",
+      "creates": 98,
+      "updates": 0,
+      "deletes": 0,
+      "aws_declarations": 95,
+      "support_declarations": 3,
+      "sha256": "8b7de3b12d7fd77aec74979fedf1f2df22cd2b1de6bc60d43bf2aa8eb5df9489",
+      "all_checks_pass": true,
+      "counts_by_type": {
+        "aws_api_gateway_deployment": 1,
+        "aws_api_gateway_gateway_response": 2,
+        "aws_api_gateway_integration": 4,
+        "aws_api_gateway_method": 4,
+        "aws_api_gateway_method_settings": 1,
+        "aws_api_gateway_resource": 5,
+        "aws_api_gateway_rest_api": 1,
+        "aws_api_gateway_rest_api_policy": 1,
+        "aws_api_gateway_stage": 1,
+        "aws_apigatewayv2_vpc_link": 1,
+        "aws_cloudwatch_log_group": 1,
+        "aws_db_instance": 1,
+        "aws_db_subnet_group": 1,
+        "aws_ecs_cluster": 1,
+        "aws_ecs_service": 2,
+        "aws_ecs_task_definition": 2,
+        "aws_elasticache_replication_group": 1,
+        "aws_elasticache_subnet_group": 1,
+        "aws_iam_role": 6,
+        "aws_iam_role_policy": 3,
+        "aws_iam_role_policy_attachment": 3,
+        "aws_internet_gateway": 1,
+        "aws_lb": 1,
+        "aws_lb_listener": 1,
+        "aws_lb_listener_rule": 5,
+        "aws_lb_target_group": 2,
+        "aws_route": 1,
+        "aws_route_table": 1,
+        "aws_route_table_association": 2,
+        "aws_secretsmanager_secret": 2,
+        "aws_secretsmanager_secret_version": 2,
+        "aws_security_group": 7,
+        "aws_service_discovery_private_dns_namespace": 1,
+        "aws_service_discovery_service": 2,
+        "aws_subnet": 4,
+        "aws_vpc": 1,
+        "aws_vpc_security_group_egress_rule": 11,
+        "aws_vpc_security_group_ingress_rule": 8,
+        "random_password": 2,
+        "terraform_data": 1
+      },
+      "difference_from_historical_97": "Dedicated aws_api_gateway_rest_api_policy.test now accounts for the resource-policy declaration separately.",
+      "candidate_configuration_only": true
+    },
+    "candidate_delta": {
+      "base_plan_sha256": "9c2f873762b8a5160c828fc5186839960226796ce854b4ad00f3200920719f98",
+      "source_code_changed": false,
+      "private_override_file": "infra/personal/experiment/override.tf.json",
+      "private_override_sha256": "de7f4133377f1834d6980109ead5290b507f7acebda9e1ccae5a80691205b350",
+      "db_changes": {
+        "engine_version": {
+          "before": "UNKNOWN_APPLY_TIME_DEFAULT",
+          "candidate": "18.6"
+        },
+        "auto_minor_version_upgrade": {
+          "before": true,
+          "candidate": false
+        },
+        "allow_major_version_upgrade": {
+          "before": null,
+          "candidate": false
+        }
+      },
+      "actual_user_approval_received": false,
+      "address_allowlist_unchanged": true,
+      "image_digest_inputs_unchanged": true,
+      "rendered_task_container_definitions": "Unknown until generated resource references resolve; source template and image input contract used, no rendered runtime verification claimed",
+      "tester_public_ipv4_rechecked": true
+    },
+    "rds_candidate_availability": {
+      "queried_at_utc": "2026-10-30T07:51:27.453241+00:00",
+      "region": "ap-northeast-2",
+      "versions": [
+        {
+          "Engine": "postgres",
+          "EngineVersion": "18.6",
+          "Status": "available"
+        }
+      ],
+      "orderable_gp3_options": [
+        {
+          "EngineVersion": "18.6",
+          "Class": "db.t4g.small",
+          "Storage": "gp3",
+          "MinStorageGB": 20,
+          "MaxStorageGB": 16384,
+          "SupportsStorageEncryption": true
+        }
+      ],
+      "note": "Read-only availability is not successful creation or runtime compatibility proof."
+    },
+    "expiry": {
+      "review_only_tag_utc": "2026-10-31T09:00:00Z",
+      "actual_schedule_approved": false,
+      "automatic_deletion": false,
+      "refresh_before_apply": [
+        "User-approved start/end and budget",
+        "Current tester IPv4 /32",
+        "Default profile account/region",
+        "Current source and providers",
+        "ECR digests and verification evidence",
+        "Current state and drift",
+        "RDS default version or separately approved explicit version pin",
+        "Recreate saved plan after any input/state/source change or delayed execution"
+      ],
+      "review_only_tag_kst": "2026-10-31T18:00:00+09:00",
+      "approval_required": "AWS deployment, load/fault tests, actual cleanup execution and M4/M5 contracts require separate user approval. Execution day is not set; re-review and recreate saved plan before any apply."
+    },
+    "private_artifacts": {
+      "baseline.tfvars.json": {
+        "sha256": "d97ef81fc62acf8aa7dcf7871bcff13ec59524a15105a06b40db95b0337fe498",
+        "mode": "0o600"
+      },
+      "prometheus-contract.tfvars.json": {
+        "sha256": "349e96d1586db188e34b48b4829d83538885871098c39cf238dd7af946084c8a",
+        "mode": "0o600"
+      },
+      "baseline.tfplan": {
+        "sha256": "8b7de3b12d7fd77aec74979fedf1f2df22cd2b1de6bc60d43bf2aa8eb5df9489",
+        "mode": "0o600"
+      },
+      "infra/personal/experiment/override.tf.json": {
+        "sha256": "de7f4133377f1834d6980109ead5290b507f7acebda9e1ccae5a80691205b350",
+        "mode": "0o600"
+      }
+    },
+    "runtime_db": {
+      "engine": "postgres",
+      "planned_engine_version": "18.6",
+      "observed_regional_default": "18.3",
+      "observed_default_status": "available",
+      "instance_class": "db.t4g.small",
+      "storage_gb": 20,
+      "storage_type": "gp3",
+      "publicly_accessible": false,
+      "multi_az": false,
+      "backup_retention_days": 0,
+      "skip_final_snapshot": true,
+      "deletion_protection": false,
+      "auto_minor_version_upgrade": false,
+      "allow_major_version_upgrade": false,
+      "version_choice_approved": false
+    },
+    "state_policy": "Private copied-state review only; source PR and fresh canonical-state plan required before deployment approval",
+    "images_and_98_address_allowlist_unchanged": true,
+    "container_definition_limit": "Rendered container definitions unknown until secret references resolve; source templates and image inputs reviewed, not runtime verified"
   }
 }
