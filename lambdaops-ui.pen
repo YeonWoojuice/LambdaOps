@@ -14154,7 +14154,7 @@
       "id": "GlYom",
       "x": 1560,
       "y": 3560,
-      "name": "09 · 선택한 Incident 지표 · 데이터 상태 설계 초안",
+      "name": "09 · 선택한 Incident 지표 · 지표 설계 승인 2026-10-30 · 구현 전",
       "clip": true,
       "width": 1440,
       "height": 1600,
@@ -14444,7 +14444,7 @@
                           "id": "eeoay",
                           "name": "설계 상태 글자",
                           "fill": "$obs-cyan",
-                          "content": "설계 초안",
+                          "content": "지표 설계 승인 · 구현 전",
                           "fontFamily": "$obs-font",
                           "fontSize": 11,
                           "fontWeight": "700"
@@ -14484,7 +14484,7 @@
                       "id": "M1kGi",
                       "name": "지표 예시 문장",
                       "fill": "$obs-muted",
-                      "content": "설계 초안 · 예시 데이터입니다. Incident별 metrics API 후보를 사용하며 전체 서비스 집계 API는 아직 설계하지 않았습니다.",
+                      "content": "지표 설계 승인 2026-10-30 · 구현 전 · 예시 데이터입니다. 선택 대표 Incident 기준이며 전체 서비스 집계는 별도 설계입니다.",
                       "fontFamily": "$obs-font",
                       "fontSize": 12,
                       "fontWeight": "normal"
@@ -14529,11 +14529,11 @@
                     {
                       "type": "text",
                       "id": "qzVVq",
-                      "name": "시간 및 갱신 후보",
+                      "name": "승인된 시간 및 갱신 규칙",
                       "fill": "$obs-cyan",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "권장 후보 · 기본 60분(Alarm 시작 전 15분 / 후 45분) · 최대 6시간 · 초기 수동 갱신",
+                      "content": "승인된 규칙 · 기본 60분(Alarm 시작 전 15분 / 후 45분) · 최대 6시간 · 초기 수동 갱신",
                       "fontFamily": "$obs-font",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -14553,11 +14553,11 @@
                     {
                       "type": "text",
                       "id": "Iz1hn",
-                      "name": "완료 구간 조회 후보",
+                      "name": "승인된 완료 구간 조회 규칙",
                       "fill": "$obs-muted",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "권장 후보 · 완료된 60초 구간만 조회 · 미래/현재 미완성 분 제외 · 종료 에피소드는 OK 후 15분까지",
+                      "content": "승인된 규칙 · 완료된 60초 구간만 조회 · 미래/현재 미완성 분 제외 · 종료 에피소드는 OK 후 15분까지",
                       "fontFamily": "$obs-font",
                       "fontSize": 12,
                       "fontWeight": "normal"
@@ -14600,7 +14600,7 @@
                           "id": "NdspJ",
                           "name": "데이터 상태 규칙 꼬리",
                           "fill": "$obs-muted",
-                          "content": "설계 초안 · 표시 예시",
+                          "content": "지표 표시 규칙 승인 · 예시 데이터",
                           "fontFamily": "$obs-font",
                           "fontSize": 12,
                           "fontWeight": "normal"
