@@ -1,5 +1,52 @@
 # LambdaOps dev Terraform roots
 
+## Baseline saved plan review — 2026-10-30 15:43 KST
+
+[검토 증거](../../../docs/testing/evidence/2026-10-30-baseline-plan-review.json)는 PR #8 병합 후 준비한 **계획**이다. AWS 배포·이미지 게시·부하/장애 시험을 실행하지 않았다. 기존 Stage B의 “계획 미작성” 상태를 이 절로 갱신한다. 정상 기준선은 경보 임계값을 정하기 전에 인증과 관측이 올바르게 작동하는지 확인할 환경이다.
+
+| 항목 | 실제 준비 결과 |
+| --- | --- |
+| 대상 | default 프로필, 계정 `642935793048`, 서울 `ap-northeast-2`; Slash `origin/main eaabdd7` |
+| 구성 검사 | Terraform 1.5.7, AWS provider 6.66.0, random 3.9.1; init/validate 및 saved plan 성공 |
+| 변경 | **98 생성 / 0 변경 / 0 삭제**. AWS 선언 95개와 지원 선언 3개이며 실행 서버 98대라는 뜻이 아니다. 과거 97개와 차이는 별도 API Gateway resource policy 선언 1개 |
+| 실행 범위 | `api-baseline`, API 1 vCPU/3 GiB 한 task, monitoring 1 vCPU/2 GiB 한 task. monitoring·CloudWatch publisher 켜짐, DB 시험 task 꺼짐 |
+| 이미지 | API `99575923…`, Prometheus `fca63956…`, Grafana `8b4387da…`를 **태그 대신 전체 digest** URI로 지정. 전체 값은 증거 JSON에 기록 |
+| DB 시험 이미지 | 검증한 `82b02a98…`를 별도 후보로 기록했지만 baseline에는 task·권한을 추가하지 않음 |
+| 시험 IP | 현재 공인 IPv4 한 개의 `/32`를 확인해 비공개 입력에 지정. 원문 IP는 Git에 게시하지 않음 |
+| 접근 | 내부 ALB, API 8080·관리 9091, Grafana 3000; RDS/Valkey 비공개. 공개 API 경로는 `/api/v1/me` GET/OPTIONS와 Grafana 경로. Cognito JWT는 API 서버에서 검증하고 Grafana는 별도 로그인 필요 |
+| 관측 | CloudWatch `LambdaOps/Slash`, `Service=slash-api`, `Environment=dev`, 60초 원본 지표 5개 및 query timer. PutMetricData는 namespace/리전 제한 |
+| DB | private PostgreSQL, db.t4g.small, 20 GB gp3, Single-AZ. 당일 서울 기본 버전은 18.3으로 조회했으나 **계획의 engine_version은 적용 시 결정되는 미확정값** |
+
+서브 에이전트가 생성된 plan JSON을 독립 검토했다. 바이너리 plan의 독립 재추출은 로컬 provider 실행 오류로 실패했으므로 두 번째 재추출 검증까지 완료했다고 주장하지 않는다. Prometheus 이미지에 포함된 설정 hash도 실제 이미지와 대조했다. Prometheus의 `environment=personal`과 CloudWatch의 `Environment=dev`는 서로 다른 표기이므로 비교 시 명시적으로 매핑한다. Slash PostgreSQL은 LambdaOps Incident 저장소 Aurora DSQL과 별개다. baseline에는 사용하지 않는 inference SG/역할/DNS 선언이 남지만 inference task 및 Bedrock invoke policy는 없다. 불필요한 선언 정리는 향후 별도 개선이며 이번에는 코드 변경을 하지 않았다.
+
+### 비공개 계획과 재검토 조건
+
+계획은 `/private/tmp/slash-baseline-20261030/baseline.tfplan`에 저장했고 SHA-256은 `9c2f873762b8a5160c828fc5186839960226796ce854b4ad00f3200920719f98`이다. 디렉터리는 700, 입력·계획은 600으로 제한했다. 원본 experiment의 비어 있는 local state를 보호된 위치에 복사하여 계획했으며 원본은 변경하지 않았다. raw plan·state·tfvars·토큰·비밀값은 Git에 올리지 않는다.
+
+**이 계획을 즉시 적용할 수 있다는 승인이 아니다.** 실제 일정이 아직 없으므로 `ExpiresAt=2026-10-30T11:43:02Z`(20:43:02 KST)는 검토용 태그이며 자동 삭제 기능이 아니다. 실행 전에 승인된 시작/중단/삭제 완료 시각을 정하고, 현재 IP·계정·소스/provider·이미지·state/drift·DB 기본 버전을 재확인하여 **새 계획을 만들어 다시 검토**한다. 실제 canonical experiment state에서 새 계획을 만들고 그 state에 적용 결과를 보존해야 한다. 검토용 복사본에서 적용한 뒤 결과 state를 잃거나 원본과 따로 운영해서는 안 된다. IP가 바뀌면 범위를 넓히지 않고 새 `/32` 계획을 만든다. PostgreSQL 18.x 명시 고정은 재현성을 높이는 후보이며 변경 승인이 필요하다. 기본값을 유지하더라도 실제 버전 확인 전 DB 호환성 완료를 선언하지 않는다.
+
+### 정리 계획과 보존 경계
+
+현재 state는 관리 자원 0개이며 실제 현재 destroy 계획도 **0 생성 / 0 변경 / 0 삭제**이다. 이는 향후 98개 삭제를 보장하는 계획이 아니다. 생성 예정 98개 주소 allowlist를 증거에 기록했으며 다음 절차를 제안한다.
+
+1. 향후 승인된 배포 후 실제 experiment state와 생성 주소·태그를 대조한다.
+2. 그 state로 **새 destroy saved plan**을 만들고 삭제 범위를 검토하여 별도 정리 승인을 받는다.
+3. 시험 증거를 비밀값 없이 보관하고 experiment 자원을 정리한다. RDS backup 0·final snapshot 없음, cache snapshot 없음, secret recovery 0이므로 시험용 합성 데이터만 사용해야 한다. Secrets 즉시 삭제 등 비가역 조치는 해당 시점에 별도 확인한다.
+4. state와 실제 ECS task/ENI/IP, ALB, RDS, cache, VPC Link, Cloud Map, 로그·secret 잔여를 확인한다. desired count 0, RDS stop, state 파일 삭제를 정리 완료로 취급하지 않는다.
+
+**보존:** foundation의 ECR·Cognito와 상태, LambdaOps DSQL·Lambda·API·SQS 및 모든 experiment 밖 자원. M2 Alarm과 M3 연결도 이번 계획에 없다. Slash는 독립 local state이므로 LambdaOps의 S3 상태 저장소와 혼동하지 않는다.
+
+### 예산·종료 담당 제안과 다음 승인
+
+당일 단가와 현재 사양을 적용한 생성부터 삭제 완료까지 **최대 5시간, 추가 예산 $5**를 제안한다. 정상 baseline 추정은 $1.41~2.14, CPU credit·부분 시간까지 보수적으로 약 $2.94다. $5는 승인 후보이며 자동 강제 상한이 아니다. 기존 ECR/Cognito/LambdaOps/DSQL, 세금·환율과 추가 재배포·부하/장애는 제외한다. Cloud Map DNS가 남아 12시간을 넘으면 월 요금 가능성이 있다. 로그·secret 등 잔여 비용도 재평가한다.
+
+실행 제안 역할은 `capstone-구현` 메인이 생성/중단/정리 기록 담당, 설계 검토 에이전트가 범위·계약 검토, 사용자가 일정·비용·배포 및 시험 승인 담당이다. 자동 감시나 예약 삭제는 설치하지 않았다. 실행 승인을 요청할 때 시작 시각, 시험 중단 시각, 삭제 완료 시각, 담당 채팅의 실제 실행 가능 여부를 함께 확정한다.
+
+다음 실행 제안은 배포 후 인증된 정상 GET `/me` 200, 무토큰 401, 금지 IP/경로 차단, Grafana 로그인, 5개 실측 지표의 동일 60초 표본 및 관측 연속성 확인까지다. 2초 초과 등 기존 지연 기준 불충족, 예상 밖 5xx, 접근 권한 노출, task 반복 실패, 정리 시간 초과 또는 $5 초과 전망이면 중단하고 보고한다. 기존 5 rps 실패 기록을 정상 기준선 성공으로 덮지 않는다. **부하·장애 주입은 이 정상 조회와 별도의 승인 대상**이다. 정상 요청 표본만으로 M2 임계값과 최소 표본수를 충분히 결정할 수 없으면 추가 관측 승인을 요청한다.
+
+지금 필요한 다음 결정은 이 문서 PR 검토, 실제 일정·$5 예산, PostgreSQL 버전 고정 여부다. PR 병합·AWS 배포·부하/장애 시험·M4/M5 계약 확정은 각각 별도 승인한다.
+
+
 ## Image readiness update — 2026-10-30 15:12 KST
 
 The earlier image-readiness assessment below used stale Slash checkout `7ec7140` and missed fixes already on remote `main`. Fetching the current remote showed `3c11a99db2502573e6446a946bb17cdcbaad26d9`, including Boot 4 migration `9b5a6c5`, DB image source fix `e778f48`, publication record `06dfc1a` and [actual Cognito verification PR #2](https://github.com/YeonWoojuice/slash-personal/pull/2). This update **supersedes the API/DB current-readiness conclusions**, while the prior AWS inventory remains a dated scoped observation. No duplicate migration or image rebuild was needed.

@@ -243,3 +243,12 @@ The earlier Stage A blocker used a stale local Slash branch. Current remote main
 Stage A's missing source/function evidence is now resolved for these exact candidate digests within the stated provenance limits. The old Boot 3/API and old DB highfix1 findings remain historical facts about different candidates and must not be assigned to the reviewed Boot 4/highfix2 images. Keep the [current image review](../../infra/environments/dev/README.md) and evidence timestamps together. No image was posted by this task; the API digest's newer ECR publication was observed read-only during verification.
 
 Next stage: produce and review the baseline and cleanup plans with these exact digests, current runtime/PostgreSQL/config selection, tester IP, owner and time/budget. Plan preparation may read current AWS configuration, but image promotion, apply/deploy, load/fault tests and M4/M5 contract acceptance still require their explicit approvals. Local DB cancellation tests do not prove AWS RDS behavior, HTTP 500, CloudWatch transitions or automatic Incident ingestion. No M2 or M3 milestone is marked complete by these image tests.
+
+
+## 2026-10-30 baseline saved plan — no deployment
+
+PR #8 was merged at `b9ab1a9`. The reviewed images are now pinned by full digest in a real Slash baseline saved plan: **98 create / 0 update / 0 destroy**, with init/validate and contract checks passing. [Sanitized plan evidence](evidence/2026-10-30-baseline-plan-review.json) and the [current approval/cleanup packet](../../infra/environments/dev/README.md#baseline-saved-plan-review--2026-10-30-1543-kst) update Stage B. Raw plan, tester IPv4 and inputs remain private. No AWS resource was deployed, image published or load/fault test executed.
+
+The protected plan uses a copy of empty experiment local state; its current-state destroy plan has zero actions and is **not** the future cleanup plan. Before execution, replan against the canonical state after confirming the approved schedule/budget, current IP and RDS version. PostgreSQL 18.3 was observed as the regional default, while the saved plan leaves engine version unknown until apply. The 98-address creation allowlist bounds future cleanup review; foundation and LambdaOps resources must remain outside it.
+
+M2 numeric thresholds still require actual observations. This does not complete any M2 Alarm transition, M3 automatic ingestion, AI RCA or recovery. The proposed next AWS stage is deployment plus normal authentication/telemetry checks only; deployment and any load/fault testing require separate approvals.
